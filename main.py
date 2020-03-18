@@ -4,6 +4,7 @@ import json
 
 
 app = Flask(__name__, template_folder='frontend', static_url_path="/")
+app.secret_key = 'SOME_KEY_qwertyuiop'
 # api = Api(app)
 
 
