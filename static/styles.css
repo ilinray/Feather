@@ -1,15 +1,48 @@
 * {
     transition: 0.13s all;
+    outline: none!important;
 }
-body {
+html {
+    height: 100%;
+}
+/*body {
+    height: 100%;
+    min-height: 100vh;
+}*/
+.hidden {
+    display: none!important;
+}
+#app {
+    min-height: 100vh;
+    height: 100%;
+    width: 100%;
+}
+#app {
+    background: white;
+}
+
+#app.dark {
     background: #111;
 }
 
-h1, h2, h3, h4 {
+#app.dark h1, #app.dark h2, #app.dark h3, #app.dark h4 {
     color: #fefefe;
 }
-h5, p, div {
+#app.dark h5, #app.dark p, #app.dark div {
     color: #ddd;
+}
+#app.dark #big-dimmer {
+    background-color: #111;
+}
+#big-dimmer {
+    background-color: white;
+    z-index: 99999;
+    position: fixed;
+    top:0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    clip-path: circle(0 at 0 0);
 }
 
 .presentation {
@@ -62,10 +95,8 @@ h5, p, div {
 }
 
 
-@media (max-width: 577px) {
-   .presentation .container {
-        align-items: center;
-    } 
+.presentation .b {
+    box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.8);
 }
 
 .b {
@@ -74,7 +105,8 @@ h5, p, div {
     border-radius: 7px;
     cursor: pointer;
     user-select: none;
-    box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.8)
+    border: none;
+    color: white;
 }
 .b:active {
     transform: scale3d(0.96, 0.96, 1);
@@ -92,16 +124,11 @@ h5, p, div {
     background: #159223;
 }
 
-#big-dimmer {
-    background-color: #111;
-    z-index: 99999;
-    position: fixed;
-    top:0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    clip-path: circle(0 at 0 0);
+.b.disabled {
+    background: #777;
+    pointer-events: none;
 }
+
 
 .content {
     padding-top: 4rem;
@@ -133,3 +160,155 @@ h5, p, div {
 .lcard p {
     margin: 0;
 }
+
+
+.allcenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+
+.login-form input {
+    width: 30rem;
+}
+
+.login-input input {
+    display: block;
+    padding: 0.2rem 0.3rem;
+    font-size: 1rem;
+    font-weight: 400;
+    border: none;
+    line-height: 1.5;
+    background: transparent;
+    outline: none;
+    box-shadow: inset 1px -3px 0 -2px grey;
+    transition: box-shadow 1s;
+}
+.login-input input:focus {
+    transition: box-shadow 0.2s;
+    box-shadow: inset 1px -3px 0 -2px transparent;
+}
+.login-input {
+    position: relative;
+}
+.login-input:after {
+    display: block;
+    background: #3366e2;
+    height: 0.13rem;
+    position: absolute;
+    width: 0;
+    content: " ";
+    transition: opacity 0.3s, width 1s, left 1s;
+    left: 50%;
+    bottom:0;
+    opacity: 0;
+}
+.login-input.active:after {
+    display: block;
+    background: #3366e2;
+    height: 0.13rem;
+    position: absolute;
+    width: 100%;
+    content: " ";
+    left: 0;
+    opacity: 1;
+    transition: width 0.3s, left 0.3s, opacity 0s;
+}
+
+.login-input small {
+    user-select: none;
+}
+
+#app.dark .login-input input {
+    color: white;
+}
+
+
+
+@media (max-width: 577px) {
+   .presentation .container {
+        align-items: center;
+    }
+    .login-form {
+        width: 100%;
+        padding: 2rem;
+    }
+    .login-input input {
+        width: 100%;
+    }
+}
+
+img.feather {
+    display: none;
+}
+
+.loading {
+    width: 5rem;
+}
+
+.loading span {
+    display: none;
+}
+
+.loading img.feather {
+    animation: feather-fly 3s ease-in-out 0s infinite both;
+    display: inline-block;
+    height: 1.2rem;
+}
+
+@keyframes feather-fly {
+    from {
+        transform: translate3d(-1em, -0.2em, 0) rotateZ(-100deg);
+        animation-timing-function: ease-in;
+    }
+    25% {
+        transform: translate3d(0, 0, 0) rotateZ(-130deg);
+        animation-timing-function: ease-out;
+    }
+    50% {
+        transform: translate3d(1em, -0.2em, 0) rotateZ(-150deg);
+        animation-timing-function: ease-in;
+    }
+    75% {
+        transform: translate3d(0, 0, 0) rotateZ(-130deg);
+        animation-timing-function: ease-out;
+    }
+    to {
+        transform: translate3d(-1em, -0.2em, 0) rotateZ(-100deg);
+        animation-timing-function: ease-in;
+    }
+}
+
+
+
+
+
+#sml {
+    height: 2rem;
+    width: 2rem;
+    position: fixed;
+    z-index: 100;
+    bottom: 1rem;
+    right: 1rem;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+#sml i {
+    font-size: 1.4rem;
+    user-select: none;
+}
+
+#sml.dark {
+    background: white;
+    color: #111;
+}
+
