@@ -22,4 +22,3 @@ class Dialog(Base):
     name = Column(String, index=True, nullable=True)
     file = Column(String)
     created_date = Column(DateTime, default=datetime.datetime.now)
-
