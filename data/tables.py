@@ -6,8 +6,8 @@ from connections import Base
 class User(Base):
     __tablename__ = 'users'
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=True)
-    email = Column(String, index=True, unique=True, nullable=True)
+    login = Column(String, index=True, unique=True, nullable=True)
+    email = Column(String, unique=True, nullable=True)
     hashed_password = Column(String, nullable=True)
     created_date = Column(Date, default=datetime.datetime.now)
 
