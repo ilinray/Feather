@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="big-dimmer"></div>
+<div class="presentation">
+    <div class="container">
+        <img src="/m_icon.png" alt="">
+        <h1>Feather</h1>
+        <h3>The best messenger ever!</h3>
+        <div class="pt-2"><div id="open" class="b b-pr mr-2">Open</div><div id="more" class="b b-sdr ml-2">More</div></div>
+    </div>
+    <a id="down" class="down"><i class="material-icons">keyboard_arrow_down</i></a>
+</div>
+<div id="why" class="content container">
+    <h1>Why we?</h1>
+    {# <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsa, quidem, hic. Neque non pariatur officia omnis cumque quaerat, dolor fuga rem ullam molestiae, expedita recusandae, ipsum vitae, quos beatae sit.</p> #}
+    <div class="left-img-cards">
+        <div class="lcard">
+            <img src="/novirus.png">
+            <div class="text">
+                <h5>Purity</h5>
+                <p>No COVID-19 and not a single sign of any coronavirus life</p>
+            </div>
+        </div>
+        <div class="lcard">
+            <img src="/speed.png">
+            <div class="text">
+                <h5>Speed</h5>
+                <p>Very fast connection and messaging</p>
+            </div>
+        </div>
+        <div class="lcard">
+            <img src="/anonymous.png">
+            <div class="text">
+                <h5>Anonymity</h5>
+                <p>All your data is not even encrypted. The FBI knows what you wrote before you send a message</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    const x = (window.innerWidth / 2)
+    const y = window.innerHeight
+    const dimm = (loc) => {
+        var size = 0;
+        var acc = 70;
+        var bd = setInterval(() => {
+            $("#big-dimmer").css("clip-path",`circle(${size}px at ${x}px ${y}px)`);
+            size += acc;
+            acc += 10;
+            if (size > window.innerHeight*2) {
+                clearInterval(bd);
+                window.location = loc
+            }
+        }, 50)
+    }
+    const to = (el)=> {
+        window.scrollBy({ 
+          top: $(el).position().top,
+          left: 0,
+          behavior: 'smooth' 
+        });
+    }
+    $("#big-dimmer").css("clip-path",`circle(0px at ${x}px ${y}px)`);
+    $("#open").click(()=> {dimm("/login")});
+    $("#more").click(()=> {to("#why")});
+    $("#down").click(()=> {to("#why")});
+    // $("#open2").click('dimm("/login")');
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+* {
+    transition: 0.13s all;
+}
+body {
+    background: #111;
+}
+
+h1, h2, h3, h4 {
+    color: #fefefe;
+}
+h5, p, div {
+    color: #ddd;
+}
+
+.presentation {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    background: url("https://commitmentconnection.com/wp-content/uploads/2017/11/6-Texting-Secrets-Men-Cant-Resist.jpg")
+                no-repeat;
+    background-size: cover;
+    color: white;
+    box-shadow: inset 0 0 0 100vh rgba(0,0,0,0.2);
+    background-position: 50% 50%;
+}
+.presentation .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    height: 100%;
+}
+.presentation .container h1, .presentation .container h3 {
+    text-shadow: 0.3rem 0.4rem 0.8rem black;
+    display: inline-block;
+    text-align: center;
+}
+
+.presentation .container h1 {
+    padding-top: 1rem;
+}
+
+.presentation .container img {
+    height: 7rem;
+    width: 7rem;
+    border-radius: 10%;
+}
+
+.presentation .down {
+    user-select: none;
+    align-self: center;
+    text-shadow: 0.2rem 0.2rem 0.5rem black;
+    padding-bottom: 1rem;
+}
+.presentation .down i:hover {
+    transform: translateY(-0.2rem);
+}
+.presentation .down i {
+    cursor: pointer;
+    font-size: 2rem;
+}
+
+
+@media (max-width: 577px) {
+   .presentation .container {
+        align-items: center;
+    } 
+}
+
+.b {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: 7px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0.1rem 0.1rem 0.4rem 0 rgba(0, 0, 0, 0.8)
+}
+.b:active {
+    transform: scale3d(0.96, 0.96, 1);
+}
+.b-pr {
+    background: #3366E2;
+}
+.b-pr:hover {
+    background: #2555d2;
+}
+.b-sdr {
+    background: #22a233;
+}
+.b-sdr:hover {
+    background: #159223;
+}
+
+#big-dimmer {
+    background-color: #111;
+    z-index: 99999;
+    position: fixed;
+    top:0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    clip-path: circle(0 at 0 0);
+}
+
+.content {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+.content h1 {
+    margin-bottom: 1.3rem;
+}
+
+.lcard {
+    display: flex;
+    flex-direction: row;
+}
+.lcard .text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.lcard img {
+    height: 5rem;
+    margin-right: 1rem;
+    margin-left: 1rem;
+}
+
+.lcard h5 {
+    margin-bottom: 0.2rem;
+}
+.lcard p {
+    margin: 0;
+}
