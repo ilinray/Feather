@@ -11,11 +11,14 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
 - Chat with __user__ -> /chat/__[user's id]__
 
 ### Tables
-- Tablename 1
-  - Column 1
-  - Column 2
-  - Column 3
-- Tablename 2
-  - Column 1
-  - Column 2
-  - Column 3
+- users
+  - id
+  - login
+  - email
+  - hashed_password
+  - created_date
+- dialogs
+  - id
+  - name
+  - file
+  - created_date
