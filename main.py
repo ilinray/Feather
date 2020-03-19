@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request
 from flask_restful import Api
 import json
+import data.db_funcs
+from sys import path
 
+
+path.append(path[0] + '\\data')
 
 app = Flask(__name__, template_folder='frontend', static_url_path="/")
+app.secret_key = "QWERTYUIOP23456789"
 # api = Api(app)
 
 
@@ -16,7 +21,7 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
     if request.method == "POST":
-        request.form
+        request.form['']
 
 
 if __name__ == '__main__':
