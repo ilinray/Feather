@@ -8,7 +8,7 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
 - Login -> /login
 - Registration -> /registration
 - All chats -> /all
-- Chat with __user__ -> /chat/__[user's id]__
+- Chat with user -> /chat/__[chat_id]__
 
 ### Tables
 - users
