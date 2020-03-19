@@ -125,7 +125,7 @@ class DialogConnector:
         message.add2file(str(self.entry.id))
 
 
-DialogConnector.new_dialog(
-    UserConnector.new_user('q', 'lmaao', 'lmao').id,
-    UserConnector.new_user('lmao', 'lmao', 'lmao').id
-)
+# DialogConnector.new_dialog(
+#     UserConnector.new_user('q', 'lmaao', 'lmao').id,
+#     UserConnector.new_user('lmao', 'lmao', 'lmao').id
+# )
