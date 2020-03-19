@@ -22,3 +22,6 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
   - name
   - file
   - created_date
+  - many_people
+  - hashed_password
+
