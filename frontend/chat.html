@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="big-dimmer"></div>
+<div class="chat">
+    {# <header><img src="{%  %}" alt=""></header> #}
+</div>
+<script>
+
+    
+    
+    const dimm = (loc) => {
+        var size = 0;
+        var acc = 70;
+        var bd = setInterval(() => {
+            $("#big-dimmer").css("clip-path",`circle(${size}px at 0px 0px)`);
+            size += acc;
+            acc += 10;
+            if (size > window.innerHeight*2) {
+                clearInterval(bd);
+                window.location = loc
+            }
+        }, 50)
+    }
+    const activate = (e) => {e.target.parentNode.classList.add("active")}
+    const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
+    const checkall = () => {
+        if (email && password) {
+            $("#send").removeClass("disabled");
+        } else {
+            $("#send").addClass("disabled");
+        }
+    }
+    $("#big-dimmer").css("clip-path",`circle(0px at 0px 0px)`);
+</script>
+{% endblock %}

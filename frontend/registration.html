@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="big-dimmer"></div>
+<div class="allcenter">
+    <div class="login-form">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <div class="login-input">
+                <input type="email" id="email" autocomplete="email">
+            </div>
+            <small class="text-danger hidden">It's not looks like email</small>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="login-input">
+                <input type="password" id="password" autocomplete="oldpassword">
+            </div>
+            <small class="text-danger hidden">It's empty!</small>
+        </div>
+        <div class="form-group">
+            <button type="button" id="send" class="b b-pr disabled"><img src="/icon.png" class="feather"><span>Sign up</span></button>
+        </div>
+    </div>
+</div>
+<script>
+    const x = (window.innerWidth / 2)
+    const y = window.innerHeight
+    const dimm = (loc) => {
+        var size = 0;
+        var acc = 70;
+        var bd = setInterval(() => {
+            $("#big-dimmer").css("clip-path",`circle(${size}px at ${x}px ${y}px)`);
+            size += acc;
+            acc += 10;
+            if (size > window.innerHeight*2) {
+                clearInterval(bd);
+                window.location = loc
+            }
+        }, 50)
+    }
+    const activate = (e) => {e.target.parentNode.classList.add("active")}
+    const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
+    const checkall = () => {
+        if (email && password) {
+            $("#send").removeClass("disabled");
+        } else {
+            $("#send").addClass("disabled");
+        }
+    }
+    $("#big-dimmer").css("clip-path",`circle(0px at ${x}px ${y}px)`);
+    $("#email").focus(activate);
+    $("#password").focus(activate);
+    $("#email").blur(deactivate);
+
+    var email = false;
+    var password = false;
+    $("#email").blur((e) => {
+        if (/[A-Za-z0-9.]+@+[A-Za-z]+.+[A-Za-z]/.test(e.target.value)) {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
+            email = true;
+        } else {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.remove("hidden");
+            email = false;
+        }
+        checkall();
+    })
+    $("#password").blur((e) => {
+        if (e.target.value.length) {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
+            password = true;
+        } else {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.remove("hidden");
+            password = false;
+        }
+        checkall();
+    })
+    $("#password").blur(deactivate)
+    $("#send").click((e)=> {
+        $("#send").addClass("loading")
+        $("#send").addClass("disabled")
+    });
+</script>
+{% endblock %}

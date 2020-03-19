@@ -3,14 +3,14 @@
 
 It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages with flask is a big problem)*
 
-### Pages
-- Promotion -> /
-- Login -> /login
-- Registration -> /registration
-- All chats -> /all
-- Chat with user -> /chat/__[chat_id]__
+## Pages
+- Promotion -> `/`
+- Login -> `/login`
+- Registration -> `/registration`
+- All chats -> `/all`
+- Chat with user -> `/chat/[chat_id]`
 
-### Tables
+## Tables
 - users
   - id
   - login
@@ -24,3 +24,33 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
   - created_date
   - many_people
   - hashed_password
+
+## REST API
+
+### Auth
+**[GET] `/api/auth`**
+
+Authorization. Returns user's id.
+
+**[POST] `/api/auth`**
+
+Registration. Adds user to DB.
+
+### User
+**[GET] `/api/user/[id]`**
+
+Returns *User* object
+
+**[PATCH] `/api/user/[id]`**
+
+Modification one of *User*'s fields
+
+
+### Chat
+**[GET] `/api/chat/[id]`**
+
+Returns -------------
+
+**[POST] `/api/chat/[id]`**
+
+Sends message to chat
