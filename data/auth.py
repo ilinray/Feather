@@ -20,5 +20,5 @@ class AuthResource(Resource):
         parser.add_argument('email', required=True)
         parser.add_argument('password', required=True)
         args = parser.parse_args()
-        uid = UserConnector.new_user(args['login'], args['email'], args['password'])
+        uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
         return jsonify({'status': "OK", 'uid': uid})

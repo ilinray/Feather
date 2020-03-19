@@ -225,7 +225,9 @@ html {
 #app.dark .login-input input {
     color: white;
 }
-
+.alert:empty {
+    display: none;
+}
 
 
 @media (max-width: 577px) {

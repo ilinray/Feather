@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+    if (localStorage.getItem('user')) {
+        window.location = "/chats"
+    }
+</script>
 <div id="big-dimmer"></div>
 <div class="presentation">
     <div class="container">

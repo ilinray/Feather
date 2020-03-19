@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+    if (localStorage.getItem('user')) {
+        window.location = "/chats"
+    }
+</script>
 <div id="big-dimmer"></div>
 <div class="allcenter">
     <div class="login-form">
@@ -52,10 +57,11 @@
     $("#email").focus(activate);
     $("#password").focus(activate);
     $("#email").blur(deactivate);
+    $("#password").blur(deactivate);
 
     var email = false;
     var password = false;
-    $("#email").blur((e) => {
+    $("#email").keyup((e) => {
         if (/[A-Za-z0-9.]+@+[A-Za-z]+.+[A-Za-z]/.test(e.target.value)) {
             e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
             email = true;
@@ -65,7 +71,7 @@
         }
         checkall();
     })
-    $("#password").blur((e) => {
+    $("#password").keyup((e) => {
         if (e.target.value.length) {
             e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
             password = true;
@@ -75,7 +81,6 @@
         }
         checkall();
     })
-    $("#password").blur(deactivate)
     $("#send").click((e)=> {
         $("#send").addClass("loading")
         $("#send").addClass("disabled")

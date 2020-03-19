@@ -1,15 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script>
+if (localStorage.getItem('user')) {
+    window.location = "/chats"
+}
+</script>
 <div id="big-dimmer"></div>
 <div class="allcenter">
     <div class="login-form">
+    <div class="form-group">
+            <label for="nickname">Login</label>
+            <div class="login-input">
+                <input type="text" id="nickname" autocomplete="nickname">
+            </div>
+            <small class="text-danger hidden">It's empty!</small>
+        </div>
         <div class="form-group">
             <label for="email">Email</label>
             <div class="login-input">
                 <input type="email" id="email" autocomplete="email">
             </div>
-            <small class="text-danger hidden">It's not looks like email</small>
+            <small class="text-danger hidden">It's not looks like email!</small>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
@@ -20,6 +32,10 @@
         </div>
         <div class="form-group">
             <button type="button" id="send" class="b b-pr disabled"><img src="/icon.png" class="feather"><span>Sign up</span></button>
+        </div>
+        <div class="form-group">
+            <div id="error" class="alert alert-danger text-danger hidden" role="alert">
+            </div>
         </div>
     </div>
 </div>
@@ -42,7 +58,7 @@
     const activate = (e) => {e.target.parentNode.classList.add("active")}
     const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
     const checkall = () => {
-        if (email && password) {
+        if (email && password && nickname) {
             $("#send").removeClass("disabled");
         } else {
             $("#send").addClass("disabled");
@@ -51,11 +67,15 @@
     $("#big-dimmer").css("clip-path",`circle(0px at ${x}px ${y}px)`);
     $("#email").focus(activate);
     $("#password").focus(activate);
+    $("#nickname").focus(activate);
+    $("#nickname").blur(deactivate);
     $("#email").blur(deactivate);
+    $("#password").blur(deactivate);
 
+    var nickname = false;
     var email = false;
     var password = false;
-    $("#email").blur((e) => {
+    $("#email").keyup((e) => {
         if (/[A-Za-z0-9.]+@+[A-Za-z]+.+[A-Za-z]/.test(e.target.value)) {
             e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
             email = true;
@@ -65,7 +85,17 @@
         }
         checkall();
     })
-    $("#password").blur((e) => {
+    $("#nickname").keyup((e) => {
+        if (e.target.value.length) {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
+            nickname = true;
+        } else {
+            e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.remove("hidden");
+            nickname = false;
+        }
+        checkall();
+    })
+    $("#password").keyup((e) => {
         if (e.target.value.length) {
             e.target.parentNode.parentNode.getElementsByTagName("small")[0].classList.add("hidden");
             password = true;
@@ -75,10 +105,29 @@
         }
         checkall();
     })
-    $("#password").blur(deactivate)
     $("#send").click((e)=> {
-        $("#send").addClass("loading")
-        $("#send").addClass("disabled")
-    });
+        $("#send").addClass("loading");
+        $("#send").addClass("disabled");
+        $.post("/api/auth", {
+            "login":$("#nickname")[0].value,
+            "password":$("#password")[0].value,
+            "email":$("#email")[0].value
+            }).then(data => {
+                if (data.status == "OK") {
+                    localStorage.setItem("user", data.uid);
+                    window.location = "/chats"
+                } else {
+                    $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
+                    $("#send").removeClass("loading");
+                    $("#send").removeClass("disabled");
+                    $("#error").removeClass("hidden");
+                }
+            }).catch(e => {
+                $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
+                $("#send").removeClass("loading");
+                $("#send").removeClass("disabled");
+                $("#error").removeClass("hidden");
+            });
+        });
 </script>
 {% endblock %}
