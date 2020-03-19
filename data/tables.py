@@ -10,12 +10,12 @@ if __name__ != "__main__":
 from connections import Base
 
 
-connector = Table(
-    'connector', MetaData(),
-    Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
-    Column('dial_id', Integer, ForeignKey('dialogs.id', ondelete="CASCADE"), primary_key=True)
-)
-
+class Connector(Base):
+    __tablename__ = 'connector'
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
+    dial_id = Column(Integer, ForeignKey('dialogs.id', ondelete="CASCADE"), primary_key=True)
+    user = orm.relationship("User", back_populates="dialogs")
+    dialog = orm.relationship("Dialog", back_populates="users")
 
 class User(Base):
     __tablename__ = 'users'
@@ -24,7 +24,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=True)
     hashed_password = Column(LargeBinary, nullable=True)
     created_date = Column(Date, default=datetime.datetime.now)
-    dialogs = orm.relation('Dialog', secondary=connector, back_populates="users")
+    dialogs = orm.relation('Connector', back_populates='user')
 
 class Dialog(Base):
     __tablename__ = 'dialogs'
@@ -33,4 +33,4 @@ class Dialog(Base):
     created_date = Column(DateTime, default=datetime.datetime.now)
     many_people = Column(Boolean, default=False)
     hashed_password = Column(LargeBinary, nullable=True)
-    dialogs = orm.relation('User', secondary=connector, back_populates="dialogs")
+    users = orm.relation('Connector', back_populates='dialog')

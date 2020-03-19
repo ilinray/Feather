@@ -50,6 +50,7 @@ class Message:
 class UserConnector:
     def __init__(self, user):
         self.entry = user
+        self.id = user.id
 
     @classmethod
     def from_id(cls, user_id):
@@ -72,17 +73,18 @@ class UserConnector:
 class DialogConnector:
     def __init__(self, dialog):
         self.entry = dialog
+        self.id = dialog.id
 
     @classmethod
     def from_id(cls, dialog_id):
         return cls(session.query(Dialog).get(dialog_id))
 
     @classmethod
-    def new_dialog(cls, *users, name=None, password=None):
+    def new_dialog(cls, *users_id, name=None, password=None):
         dialog = Dialog()
-        if len(users) > 2:
+        if len(users_id) > 2:
             dialog.many_people = True
-        elif len(users) == 2:
+        elif len(users_id) == 2:
             dialog.many_people = False
         else:
             raise Exception('Strange amount of users')
@@ -93,17 +95,22 @@ class DialogConnector:
         session.commit()
         path = dialogs_path.joinpath(str(dialog.id))
         path.mkdir(parents=True, exist_ok=True)
+        for id in users_id:
+            entry = Connector()
+            entry.user_id = id
+            entry.dial_id = dialog.id
+            session.add(entry)
         session.commit()
         return cls(dialog)
 
     def get_users_id(self):
-        return session.query(Connector).filter(Connector.dialog_id == self.entry.id)
+        return session.query(Connector).filter(Connector.dialog_id == self.id)
 
     def get_log_directory(self):
         return self.entry.directory
 
     def get_messages(self):
-        for path in dialogs_path.joinpath(str(self.entry.id)).itemdir():
+        for path in dialogs_path.joinpath(str(self.id)).itemdir():
             with path.open('r') as fi:
                 for row in reader(fi, deltimeter=';'):
                     yield Message(row[0], row[1], row[2].split(','), datetime.fromisoformat(row[3]))
@@ -116,3 +123,9 @@ class DialogConnector:
 
     def send_msg(self, message):
         message.add2file(str(self.entry.id))
+
+
+DialogConnector.new_dialog(
+    UserConnector.new_user('q', 'lmaao', 'lmao').id,
+    UserConnector.new_user('lmao', 'lmao', 'lmao').id
+)
