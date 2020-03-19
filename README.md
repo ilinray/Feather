@@ -1,7 +1,7 @@
 # Feather <img src="http://files.suheugene.ru/b_icon.png" alt="Feather app icon" height="25" width="25">
 *The best messenger ever!*
 
-It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages with flask - a big problem)*
+It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages with flask is a big problem)*
 
 ### Pages
 - Promotion -> /
@@ -22,3 +22,5 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
   - name
   - file
   - created_date
+  - many_people
+  - hashed_password
