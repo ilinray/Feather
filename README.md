@@ -6,9 +6,9 @@ It's a messenger wrote on **Flask** and **JS** *(because send/recieve messages w
 ### Pages
 - Promotion -> /
 - Login -> /login
-- Registration -> /register
-- All chats -> /chat
-- Chat with __user__ -> /chat/__[dialog's id]__
+- Registration -> /registration
+- All chats -> /all
+- Chat with user -> /chat/__[chat_id]__
 
 ### Tables
 - users
