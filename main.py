@@ -2,8 +2,8 @@ from flask import Flask, render_template, request
 from flask_restful import Api
 import json
 from sys import path
-from backend import auth
-
+from data import auth
+# from data.db_funcs import UserConnector
 
 path.append(path[0] + '\\data')
 
