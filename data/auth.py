@@ -35,4 +35,4 @@ class AuthResource(Resource):
             return jsonify({'status': "OK", 'uid': uid})
         except BaseException:
             return jsonify({'status': "ER",
-                            'reason': 'login or email is already taken'}), 500
+                            'reason': 'login or email is already taken'}), 409
