@@ -20,10 +20,10 @@ def auth_resource(app):
                                     'uid': user.id})
                 else:
                     return jsonify({'status': "ER",
-                                    'reason': 'wrong password'}), 401
+                                    'reason': 'Wrong password'}), 401
             except:
                 return jsonify({'status': "ER",
-                                'reason': 'user not found'}), 404
+                                'reason': 'User not found'}), 404
 
         # Sign up
         def post(self):
@@ -37,4 +37,5 @@ def auth_resource(app):
                 app.session['logged_in'] = uid
                 return jsonify({'status': "OK", 'uid': uid})
             except BaseException:
-                return jsonify({'status': "ER"}), 500
+                return jsonify({'status': "ER",
+                                'reason': 'Nickname already exists'}), 409

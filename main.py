@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 from flask_restful import Api
 import json
 from sys import path
@@ -10,7 +10,6 @@ path.append(path[0] + '\\data')
 app = Flask(__name__, template_folder='frontend', static_url_path="/")
 app.secret_key = "QWERTYUIOP23456789"
 api = Api(app)
-app.session['logged_in'] = None
 
 
 @app.route('/')
@@ -26,6 +25,11 @@ def login():
 @app.route('/registration')
 def registration():
     return render_template("registration.html")
+
+
+@app.route('/chat')
+def registration():
+    return render_template("chat.html")
 
 api.add_resource(auth.auth_resource(app), '/api/auth')
 
