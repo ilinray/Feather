@@ -20,8 +20,8 @@ def auth_resource(app):
                                     'uid': user.id})
                 else:
                     return jsonify({'status': "ER"}), 401
-            except:
-                return jsonify({'status': "ER"}), 404
+            except BaseException:
+                return jsonify({'status': "ER"}), 500
 
         # Sign up
         def post(self):
@@ -30,6 +30,9 @@ def auth_resource(app):
             parser.add_argument('email', required=True)
             parser.add_argument('password', required=True)
             args = parser.parse_args()
-            uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
-            app.session['logged_in'] = uid
-            return jsonify({'status': "OK", 'uid': uid})
+            try: 
+                uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+                app.session['logged_in'] = uid
+                return jsonify({'status': "OK", 'uid': uid})
+            except BaseException:
+                return jsonify({'status': "ER"}), 500
