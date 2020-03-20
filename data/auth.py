@@ -1,5 +1,5 @@
-from flask_restful import reqparse, abort, Resource
-from flask import jsonify, abort
+from flask_restful import reqparse, Resource
+from flask import jsonify
 import sys
 from .db_funcs import UserConnector
 
@@ -33,13 +33,14 @@ def auth_resource(app):
             parser.add_argument('password', required=True)
             args = parser.parse_args()
             try:
-                uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+                uid = UserConnector.new_user(
+                    args['login'], args['email'], args['password']).id
             except:
                 return jsonify({'status': "ER",
                                 'reason': 'email or login is already taken'}), 403
             app.session['logged_in'] = uid
             return jsonify({'status': "OK", 'uid': uid})
-        
+
         def delete(self):
             app.session['logged_in'] = None
             return jsonify({'status': "OK"})
