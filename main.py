@@ -27,7 +27,7 @@ def login():
 def registration():
     return render_template("registration.html")
 
-api.add_resource(auth.auth_resource(app), '/api/auth')
+api.add_resource(auth.AuthResource, '/api/auth')
 
 if __name__ == '__main__':
     app.run(port=8080, host='0.0.0.0', debug=True)
