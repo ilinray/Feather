@@ -26,7 +26,7 @@ if (localStorage.getItem('user')) {
         <div class="form-group">
             <label for="password">Password</label>
             <div class="login-input">
-                <input type="password" id="password" autocomplete="oldpassword">
+                <input type="password" id="password" autocomplete="new-password">
             </div>
             <small class="text-danger hidden">It's empty!</small>
         </div>
@@ -112,22 +112,26 @@ if (localStorage.getItem('user')) {
             "login":$("#nickname")[0].value,
             "password":$("#password")[0].value,
             "email":$("#email")[0].value
-            }).then(data => {
-                if (data.status == "OK") {
-                    localStorage.setItem("user", data.uid);
-                    dimm("/chats")
-                } else {
-                    $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
-                    $("#send").removeClass("loading");
-                    $("#send").removeClass("disabled");
-                    $("#error").removeClass("hidden");
-                }
-            }).catch(e => {
+        }).then(data => {
+            if (data.status == "OK") {
+                localStorage.setItem("user", data.uid);
+                dimm("/chats")
+            } else {
                 $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
                 $("#send").removeClass("loading");
                 $("#send").removeClass("disabled");
                 $("#error").removeClass("hidden");
-            });
+            }
+        }).catch(e => {
+            if (e.status == 500) {
+                $("#error").html("Произошла ошибка на сервере. Попробуйте ещё раз через некоторое количество времени");
+            } else {
+                $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
+            }
+            $("#send").removeClass("loading");
+            $("#send").removeClass("disabled");
+            $("#error").removeClass("hidden");
         });
+    });
 </script>
 {% endblock %}

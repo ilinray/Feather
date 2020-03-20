@@ -4,10 +4,22 @@
 <div id="big-dimmer"></div>
 <div class="chat">
     {# <header><img src="{%  %}" alt=""></header> #}
+    <div class="allcenter">
+        <button id="exit" type="button">Выйти (в окно)</button>
+    </div>
 </div>
+<style>
+    #exit {
+        height: 50vh;
+        width: 50vw;
+    }
+</style>
 <script>
 
-    
+    $("#exit").click((e) => {
+        localStorage.removeItem("user");
+        dimm('/');
+    })
     
     const dimm = (loc) => {
         var size = 0;
