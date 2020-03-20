@@ -74,13 +74,10 @@ class UserConnector:
 
     @classmethod
     def login(cls, login, password):
-        try:
-            user = cls(session.query(User).filter(User.login == login).first())
-            correct = user.check_password(password)
-            if correct:
-                return user
-        except:
-            return None
+        user = cls(session.query(User).filter(User.login == login).first())
+        correct = user.check_password(password)
+        if correct:
+            return user
 
 class DialogConnector:
     def __init__(self, dialog):
