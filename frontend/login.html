@@ -47,7 +47,7 @@
     const activate = (e) => {e.target.parentNode.classList.add("active")}
     const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
     const checkall = () => {
-        if (email && password) {
+        if (login && password) {
             $("#send").removeClass("disabled");
         } else {
             $("#send").addClass("disabled");
@@ -84,7 +84,7 @@
     $("#send").click((e)=> {
         $("#send").addClass("loading");
         $("#send").addClass("disabled");
-        $.post("/api/auth", {
+        $.get("/api/auth", {
             "login":$("#login")[0].value,
             "password":$("#password")[0].value,
         }).then(data => {
