@@ -26,8 +26,8 @@ def login():
 def registration():
     return render_template("registration.html")
 
-@app.route('/chat')
-def registration():
+@app.route('/chats')
+def chat():
     return render_template("chat.html")
     
 api.add_resource(auth.AuthResource, '/api/auth')
