@@ -19,9 +19,11 @@ def auth_resource(app):
                     return jsonify({'status': "OK",
                                     'uid': user.id})
                 else:
-                    return jsonify({'status': "ER"}), 401
+                    return jsonify({'status': "ER",
+                                    'reason': 'wrong password'}), 401
             except:
-                return jsonify({'status': "ER"}), 404
+                return jsonify({'status': "ER",
+                                'reason': 'user not found'}), 404
 
         # Sign up
         def post(self):
@@ -30,6 +32,14 @@ def auth_resource(app):
             parser.add_argument('email', required=True)
             parser.add_argument('password', required=True)
             args = parser.parse_args()
-            uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+            try:
+                uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+            except:
+                return jsonify({'status': "ER",
+                                'reason': 'email or login is already taken'}), 403
             app.session['logged_in'] = uid
             return jsonify({'status': "OK", 'uid': uid})
+        
+        def delete(self):
+            app.session['logged_in'] = None
+            return jsonify({'status': "OK"})
