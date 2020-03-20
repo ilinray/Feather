@@ -10,6 +10,7 @@ path.append(path[0] + '\\data')
 app = Flask(__name__, template_folder='frontend', static_url_path="/")
 app.secret_key = "QWERTYUIOP23456789"
 api = Api(app)
+app.session['logged_in'] = None
 
 
 @app.route('/')
@@ -26,7 +27,7 @@ def login():
 def registration():
     return render_template("registration.html")
 
-api.add_resource(auth.AuthResource, '/api/auth')
+api.add_resource(auth.auth_resource(app), '/api/auth')
 
 if __name__ == '__main__':
     app.run(port=8080, host='0.0.0.0', debug=True)

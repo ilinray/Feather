@@ -54,7 +54,10 @@ class UserConnector:
 
     @classmethod
     def from_id(cls, user_id):
-        return cls(session.query(User).get(user_id))
+        try:
+            return cls(session.query(User).get(user_id))
+        except:
+            return None
 
     @classmethod
     def new_user(cls, login, email, password):
@@ -69,6 +72,15 @@ class UserConnector:
     def check_password(self, password):
         return hashed_password(password) == self.entry.hashed_password
 
+    @classmethod
+    def login(cls, login, password):
+        try:
+            user = cls(session.query(User).filter(User.login == login).first())
+            correct = user.check_password(password)
+            if correct:
+                return user
+        except:
+            return None
 
 class DialogConnector:
     def __init__(self, dialog):
