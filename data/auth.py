@@ -43,3 +43,5 @@ def auth_resource(app):
         def delete(self):
             app.session['logged_in'] = None
             return jsonify({'status': "OK"})
+
+    return AuthResource
