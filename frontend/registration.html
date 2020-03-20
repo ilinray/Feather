@@ -115,7 +115,7 @@ if (localStorage.getItem('user')) {
             }).then(data => {
                 if (data.status == "OK") {
                     localStorage.setItem("user", data.uid);
-                    window.location = "/chats"
+                    dimm("/chats")
                 } else {
                     $("#error").html("Произошла ошибка.<br>Возможно занят ваш никнейм или такая почта уже использовалась");
                     $("#send").removeClass("loading");
