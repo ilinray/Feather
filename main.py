@@ -27,8 +27,12 @@ def registration():
     return render_template("registration.html")
 
 @app.route('/chats')
-def chat():
-    return render_template("chat.html")
+def chats():
+    return render_template("chats.html")
+
+@app.route('/chat/<int:cid>')
+def chat(cid):
+    return render_template("chat.html", cid=cid)
     
 api.add_resource(auth.AuthResource, '/api/auth')
 

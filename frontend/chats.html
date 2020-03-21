@@ -10,16 +10,20 @@
 <div id="chat">
     <header>
         <div class="left">
-            <button id="back" type="button" class="back"><i class="material-icons">arrow_back</i></button>
+            <button id="exit" type="button" class="back"><i class="material-icons">exit_to_app</i></button>
             <h4>Чаты</h4>
         </div>
         <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
     </header>
+    <div class="chat-list">
+
+    </div>
 </div>
 <script>
-    const chat_id = {% cid %}
-    $("#back").click((e) => {
-        dimm('/chats');
+
+    $("#exit").click((e) => {
+        localStorage.removeItem("user");
+        dimm('/');
     })
     
     const dimm = (loc) => {
