@@ -9,5 +9,28 @@ class ChatsResource(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('uid', required=True)
         args = parser.parse_args()
-        if args['uid'] != session['logged_in']:
-            return jsonify({})
+        uid = args['uid']
+        if uid != session['logged_in']:
+            info = []
+            try:
+                user = UserConnector.from_id(uid)
+            except:
+                return jsonify({'status': 'ER',
+                                'reason': 'user not found'}), 404
+            for dial in user.get_chats():
+                mp = dial.entry.many_people
+                dial_info = {'many_people': mp,
+                             'picture': (str(dial.id) + '.jpeg') if dial.entry.has_pic else None}
+                if mp:
+                    dial_info['name'] = dial.entry.name
+                else:
+                    a, b, *_ = dial.entry.users
+                    dial_info['name'] = b.login if a.id == uid else a.login
+                
+                info.append(dial_info)
+            return jsonify({'status': 'OK',
+                            'chats': info})
+        else:
+            return jsonify({'status': 'ER',
+                            'reason': 'you are not logged in'}), 401
+

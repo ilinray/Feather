@@ -77,6 +77,10 @@ class UserConnector:
         user = cls(session.query(User).filter(User.login == login).first())
         if user.check_password(password):
             return user
+    
+    def get_chats(self):
+        for each in self.entry.dialogs:
+            yield DialogConnector(each)
 
 class DialogConnector:
     def __init__(self, dialog):
