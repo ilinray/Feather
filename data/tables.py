@@ -23,6 +23,7 @@ class User(Base):
     login = Column(String, index=True, unique=True, nullable=True)
     email = Column(String, unique=True, nullable=True)
     hashed_password = Column(LargeBinary, nullable=True)
+    has_pic = Column(Boolean, default=False)
     created_date = Column(Date, default=datetime.datetime.now)
     dialogs = orm.relation('Connector', back_populates='user')
 
@@ -33,4 +34,5 @@ class Dialog(Base):
     created_date = Column(DateTime, default=datetime.datetime.now)
     many_people = Column(Boolean, default=False)
     hashed_password = Column(LargeBinary, nullable=True)
+    has_pic = Column(Boolean, default=False)
     users = orm.relation('Connector', back_populates='dialog')

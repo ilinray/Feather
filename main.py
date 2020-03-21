@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session
 from flask_restful import Api
 import json
 from sys import path
-from data import auth
+from data import auth, dial
 # from data.db_funcs import UserConnector
 
 path.append(path[0] + '\\data')
@@ -35,6 +35,7 @@ def chat(cid):
     return render_template("chat.html", cid=cid)
     
 api.add_resource(auth.AuthResource, '/api/auth')
+api.add_resource(dial.ChatsResource, '/api/chats')
 
 if __name__ == '__main__':
     app.run(port=8080, host='0.0.0.0', debug=True)
