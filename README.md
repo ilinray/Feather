@@ -47,7 +47,7 @@ Modification one of *User*'s fields
 
 ### Chats
 
-**[GET] `/api/chats`
+**[GET] `/api/chats`**
 
 Returns list of all user's chats
 
