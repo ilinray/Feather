@@ -45,6 +45,11 @@ Returns *User* object
 
 Modification one of *User*'s fields
 
+### Chats
+
+**[GET] `/api/chats`
+
+Returns list of all user's chats
 
 ### Chat
 **[GET] `/api/chat/[id]`**
