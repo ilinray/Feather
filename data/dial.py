@@ -7,13 +7,16 @@ from .db_funcs import UserConnector, DialogConnector
 class ChatsResource(Resource):
     def get(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', required=True)
+        parser.add_argument('uid', type=int, required=True)
         args = parser.parse_args()
         uid = args['uid']
         if uid != session['logged_in']:
             info = []
             try:
                 user = UserConnector.from_id(uid)
+                if user is None:
+                    return jsonify({'status': 'ER',
+                                    'reason': 'user not found'}), 404
             except:
                 return jsonify({'status': 'ER',
                                 'reason': 'user not found'}), 404
