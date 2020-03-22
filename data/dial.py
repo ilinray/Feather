@@ -12,12 +12,8 @@ class ChatsResource(Resource):
         uid = args['uid']
         if uid != session['logged_in']:
             info = []
-            try:
-                user = UserConnector.from_id(uid)
-                if user is None:
-                    return jsonify({'status': 'ER',
-                                    'reason': 'user not found'}), 404
-            except:
+            user = UserConnector.from_id(uid)
+            if user is None:
                 return jsonify({'status': 'ER',
                                 'reason': 'user not found'}), 404
             for dial in user.get_chats():
