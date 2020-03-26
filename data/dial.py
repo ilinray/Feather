@@ -10,7 +10,7 @@ class ChatsResource(Resource):
         parser.add_argument('uid', type=int, required=True)
         args = parser.parse_args()
         uid = args['uid']
-        if uid != session['logged_in']:
+        if uid == session['logged_in']:
             info = []
             user = UserConnector.from_id(uid)
             if user is None:
@@ -24,7 +24,6 @@ class ChatsResource(Resource):
                 else:
                     a, b, *_ = dial.entry.users
                     dial_info['name'] = b.login if a.id == uid else a.login
-                
                 info.append(dial_info)
             return ({'status': 'OK', 'chats': info}, 200)
         else:
