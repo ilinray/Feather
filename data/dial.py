@@ -14,8 +14,7 @@ class ChatsResource(Resource):
             info = []
             user = UserConnector.from_id(uid)
             if user is None:
-                return jsonify({'status': 'ER',
-                                'reason': 'user not found'}), 404
+                return ({'status': 'ER', 'reason': 'user not found'}, 404)
             for dial in user.get_chats():
                 mp = dial.entry.many_people
                 dial_info = {'many_people': mp,
@@ -27,9 +26,7 @@ class ChatsResource(Resource):
                     dial_info['name'] = b.login if a.id == uid else a.login
                 
                 info.append(dial_info)
-            return jsonify({'status': 'OK',
-                            'chats': info})
+            return ({'status': 'OK', 'chats': info}, 200)
         else:
-            return jsonify({'status': 'ER',
-                            'reason': 'you are not logged in'}), 401
+            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
 
