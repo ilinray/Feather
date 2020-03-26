@@ -31,5 +31,4 @@ class AuthResource(Resource):
             session['logged_in'] = uid
             return ({'status': "OK", 'uid': uid}, 200)
         except BaseException as e:
-            print(e, flush=True)
             return ({'status': "ER", 'reason': 'login or email is already taken'}, 409)
