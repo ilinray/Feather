@@ -10,16 +10,29 @@
 <div id="chat">
     <header>
         <div class="left">
-            <button id="back" type="button" class="back"><i class="material-icons">arrow_back</i></button>
+            <button id="exit" type="button" class="back"><i class="material-icons">exit_to_app</i></button>
             <h4>Чаты</h4>
         </div>
         <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
     </header>
+    <div class="wrpr"></div>
+    <div class="main-chat">
+        <div class="chat-list">
+            <div class="one-chat">
+                <img src="https://sun9-31.userapi.com/c854324/v854324705/18948e/QfloruEg9_4.jpg" alt="">
+                <span>Nickname</span>
+            </div>
+        </div>
+        <div class="chat">
+            <div class="center">Выберите чат</div>
+        </div>
+    </div>
 </div>
 <script>
-    const chat_id = {% cid %}
-    $("#back").click((e) => {
-        dimm('/chats');
+
+    $("#exit").click((e) => {
+        localStorage.removeItem("user");
+        dimm('/');
     })
     
     const dimm = (loc) => {

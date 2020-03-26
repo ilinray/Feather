@@ -5,10 +5,17 @@
 html {
     height: 100%;
 }
+h1, h2, h3, h4, h5, h6 {
+    color: #212529;
+}
 /*body {
     height: 100%;
     min-height: 100vh;
 }*/
+
+img {
+    user-select: none;
+}
 .hidden {
     display: none!important;
 }
@@ -229,19 +236,16 @@ html {
     display: none;
 }
 
-
-@media (max-width: 577px) {
-   .presentation .container {
-        align-items: center;
-    }
-    .login-form {
-        width: 100%;
-        padding: 2rem;
-    }
-    .login-input input {
-        width: 100%;
-    }
+#app ::selection {
+    background-color: #00000033;
+    color: black;
 }
+
+#app.dark ::selection {
+    background-color: #ffffff33;
+    color: white;
+}
+
 
 img.feather {
     display: none;
@@ -283,8 +287,179 @@ img.feather {
         animation-timing-function: ease-in;
     }
 }
+#chat header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #eee;
+    height: 4rem;
+    align-items: center;
+    box-shadow: 0 2px 3px 0 #00000030;
+    position: fixed;
+    width: 100%;
+}
+#chat {
+    width: 100%;
+    height: calc(100vh - 4rem);
+}
+#chat .wrpr {
+    height: 4rem;
+    display: block;
+}
+#app.dark #chat header {
+    background-color: #222;
+}
+
+#chat header button {
+    display: flex;
+    justify-content: center;
+    background-color: transparent;
+    height: 3rem;
+    width: 3rem;
+    color: #333;
+    box-shadow: inset 0 0 0 0 #eee;
+    border: none;
+    border-radius: 50%;
+    margin: 0 1rem;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+#app.dark #chat header button {
+    color: #eee;
+    box-shadow: inset 0 0 0 0 #333;
+}
+#chat header button:hover {
+    color: #2c2c2c;
+    background-color: #00000015;
+}
+
+#app.dark {
+    color: #eee;
+}
+
+#chat header button::before {
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    border-radius: 50%;
+    content: " ";
+    background-color: #3366e2;
+    transform: scale3d(0, 0, 1);
+    transition: 0.1s transform;
+}
+#chat header button i {
+    z-index: 10;
+}
+#chat header button:active::before {
+    transform: scale3d(1, 1, 1);
+} 
+
+#chat header .left {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+#chat header h4, #chat header h5 {
+    margin-bottom: 0.15em;
+    user-select: none;
+}
 
 
+.main-chat {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: stretch;
+    width: 100%;
+    height: 100%;
+}
+
+.chat-list {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: inset -3px 0 0 0 #00000015;
+}
+
+.chat-list .one-chat {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 20rem;
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+}
+.chat-list .one-chat:hover {
+    background-color: #00000015;
+}
+
+#app.dark .chat-list {
+    box-shadow: inset -3px 0 0 0 #ffffff07;
+}
+#app.dark .chat-list .one-chat:hover {
+    background-color: #ffffff07;
+}
+
+.chat-list .one-chat img {
+    border-radius: 50%;
+    height: 3rem;
+    width: 3rem;
+    margin-right: 1rem;
+}
+.chat-list .one-chat span {
+    font-size: 1.6rem;
+    color: #212529;
+}
+#app.dark .chat-list .one-chat span {
+    font-size: 1.6rem;
+    color: #eee;
+}
+
+.chat {
+    width: 100%;
+    height: 100%;
+}
+
+.center {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+#chat .center {
+    font-size: 1.3rem;
+    color: #212529;
+}
+#app.dark #chat .center {
+    font-size: 1.3rem;
+    color: #eee;
+}
+
+@media (max-width: 577px) {
+    .presentation .container {
+         align-items: center;
+     }
+     .login-form {
+         width: 100%;
+         padding: 2rem;
+     }
+     .login-input input {
+         width: 100%;
+     }
+     #chat header h4, #chat header h5 {
+        margin-bottom: 0;
+    }
+ }
 
 
 
