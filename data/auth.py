@@ -14,14 +14,11 @@ class AuthResource(Resource):
             user = UserConnector.login(args['login'], args['password'])
             if user is not None:
                 session['logged_in'] = user.id
-                return jsonify({'status': "OK",
-                                'uid': user.id})
+                return ({'status': "OK", 'uid': user.id}, 200)
             else:
-                return jsonify({'status': "ER",
-                                'reason': 'wrong password'}), 401
+                return ({'status': "ER", 'reason': 'wrong password'}, 401)
         except:
-            return jsonify({'status': "ER",
-                            'reason': 'user not found'}), 404
+            return ({'status': "ER", 'reason': 'user not found'}, 404)
     # Sign up
     def post(self):
         parser = reqparse.RequestParser()
@@ -32,7 +29,7 @@ class AuthResource(Resource):
         try: 
             uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
             session['logged_in'] = uid
-            return jsonify({'status': "OK", 'uid': uid})
-        except BaseException:
-            return jsonify({'status': "ER",
-                            'reason': 'login or email is already taken'}), 409
+            return ({'status': "OK", 'uid': uid}, 200)
+        except BaseException as e:
+            print(e, flush=True)
+            return ({'status': "ER", 'reason': 'login or email is already taken'}, 409)

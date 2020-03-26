@@ -407,6 +407,13 @@ img.feather {
     background-color: #ffffff07;
 }
 
+label {
+    color: #212529;
+}
+#app.dark label {
+    color: #eee;
+}
+
 .chat-list .one-chat img {
     border-radius: 50%;
     height: 3rem;
@@ -488,4 +495,3 @@ img.feather {
     background: white;
     color: #111;
 }
-
