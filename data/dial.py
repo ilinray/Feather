@@ -29,3 +29,22 @@ class ChatsResource(Resource):
         else:
             return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
 
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('uid', type=int, required=True)
+        parser.add_argument('second_uid', type=int, required=True)
+        parser.add_argument('password')
+        parser.add_argument('name')
+        args = parser.parse_args()
+        uid = args['uid']
+        uid2 = args['second_uid']
+        if uid != session['logged_in']:
+            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
+        else:
+            user = UserConnector.from_id(uid)
+            user2 = UserConnector.from_id(uid2)
+            if user2 is None or user is None:
+                return ({'status': 'ER', 'reason': 'user not found'}, 404)
+            try:
+                return {'status': 'OK',
+                        'new_dial_id': DialogConnector.new_dialog((uid, uid2), name=args['name'], password=args['password']).id}
