@@ -46,5 +46,5 @@ class ChatsResource(Resource):
             if user2 is None or user is None:
                 return ({'status': 'ER', 'reason': 'user not found'}, 404)
             try:
-                return {'status': 'OK',
-                        'new_dial_id': DialogConnector.new_dialog((uid, uid2), name=args['name'], password=args['password']).id}
+                return {'status': 'OK', 'new_dial_id': DialogConnector.new_dialog((uid, uid2), name=args['name'], password=args['password']).id}
+            except Exception:pass

@@ -7,24 +7,30 @@
     }
 </script>
 <div id="big-dimmer"></div>
+<div id="error-dimmer" class="hidden">
+    <h1>Error!</h1>
+    <p id="error"></p>
+    <a id="logout">Logout</a>
+</div>
 <div id="chat">
     <header>
         <div class="left">
             <button id="exit" type="button" class="back"><i class="material-icons">exit_to_app</i></button>
-            <h4>Чаты</h4>
+            <h4>Chats</h4>
         </div>
         <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
     </header>
     <div class="wrpr"></div>
     <div class="main-chat">
         <div class="chat-list">
+            <button class="add-chat"><i class="material-icons">add</i><span>Create new chat</span></button>
             <div class="one-chat">
                 <img src="https://sun9-31.userapi.com/c854324/v854324705/18948e/QfloruEg9_4.jpg" alt="">
                 <span>Nickname</span>
             </div>
         </div>
         <div class="chat">
-            <div class="center">Выберите чат</div>
+            <div class="center">Choose chat</div>
         </div>
     </div>
 </div>
@@ -37,7 +43,25 @@
 
     $.get("/api/chats", {
         "uid": localStorage.getItem('user')
-    })
+    }).then(data=> {
+        if (data.status == "OK") {
+            console.log(data.chats)
+        } else {
+            $("#error").html("Client authorization error");
+            $("#send").removeClass("loading");
+            $("#send").removeClass("disabled");
+            $("#error-dimmer").removeClass("hidden");
+        }
+    }).catch(e => {
+        if (e.status == 500) {
+            $("#error").html("Internal server error<br>Try again later");
+        } else {
+            $("#error").html("Client authorization error");
+        }
+        $("#send").removeClass("loading");
+        $("#send").removeClass("disabled");
+        $("#error-dimmer").removeClass("hidden");
+    });
     
     const dimm = (loc) => {
         var size = 0;
@@ -62,5 +86,9 @@
         }
     }
     $("#big-dimmer").css("clip-path",`circle(0px at 3rem 2rem)`);
+    $('#logout').click(()=> {
+        localStorage.removeItem('user');
+        dimm("/");
+    })
 </script>
 {% endblock %}
