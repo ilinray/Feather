@@ -1,7 +1,6 @@
-from tables import *
-from connections import create_session, global_init
 
+def f():
+    for i in range(10):
+        yield i
 
-global_init(r'C:\PyProg\Feather\db\featherDB.sqlite')
-sess = create_session()
-
+print(1 in f())
