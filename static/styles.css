@@ -130,12 +130,55 @@ img {
 .b-sdr:hover {
     background: #159223;
 }
+.b-tr {
+    background: transparent;
+    color: black;
+    box-shadow: inset 0 0 0 2px #22a233;
+    position: relative;
+}
+#app.dark .b-tr {
+    color: white;
+}
+.b-tr:hover {
+    color: white;
+}
+.b-tr::after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-radius: 7px;
+    left: 50%;
+    top: 50%;
+    background-color: #22a233;
+    transition: all 0.13s;
+    z-index: 1;
+}
+.b-tr:hover::after {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
 
 .b.disabled {
     background: #777;
     pointer-events: none;
 }
-
+.add-chat {
+    border: none;
+    background: #777;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.add-chat:hover {
+    background-color: #666;
+}
 
 .content {
     padding-top: 4rem;
