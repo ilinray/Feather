@@ -27,7 +27,7 @@ class AuthResource(Resource):
         parser.add_argument('password', required=True)
         args = parser.parse_args()
         try: 
-            uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+            uid = UserConnector.new(login=args['login'], email=args['email'], password=args['password']).id
             session['logged_in'] = uid
             return ({'status': "OK", 'uid': uid}, 200)
         except BaseException as e:

@@ -165,7 +165,3 @@ class DialogConnector(BaseConnector):
         for each in self.entry.messages.order_by(Message.id.desc()).offset(offset).limit(count):
             yield MessageConnector(each)
 
-u1 = UserConnector.new(login='lmao', email='lmao', password='lmao').id
-u2 = UserConnector.new(login='lmaa', email='lmaa', password='lmaa').id
-DialogConnector.new(host_id=u1, users_id=[u1,u2])
-
