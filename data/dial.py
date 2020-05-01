@@ -47,6 +47,26 @@ class ChatsResource(Resource):
                 'id': DialogConnector.new(host_id=uid, name=args['name'], users_id=users).id}
 
 
+class UserInfoResource(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('uid', type=int, defaut=0)
+        parser.add_argument('login', defaut='')
+        parser.add_argument('exists', type=int, defaut=0)
+        args = parser.parse_args()
+        if args['exists']:
+            if args['login']:
+                f = UserConnector.exists_from_login(args['login'])
+            elif args['uid']:
+                f = UserConnector.exists_from_id(args['uid'])
+            else:
+                f = 0
+            return '1' if f else '0'
+        else:
+            return ''
+
+
+
 class MessageResource(Resource):
     def get(self):
         parser = reqparse.RequestParser()

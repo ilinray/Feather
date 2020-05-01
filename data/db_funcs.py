@@ -129,8 +129,12 @@ class UserConnector(BaseConnector):
             yield DialogConnector(each)
     
     @classmethod
-    def from_login(cls, login):
-        session.query(User).filter(User.login == login).first()
+    def exists_from_login(cls, login):
+        return session.query(User).filter(User.login == login).first() is not None
+
+    @classmethod
+    def exists_from_id(cls, id):
+        return session.query(User).get(id) is not None
 
 class DialogConnector(BaseConnector):
     table = Dialog
