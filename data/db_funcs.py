@@ -115,13 +115,22 @@ class UserConnector(BaseConnector):
 
     @classmethod
     def login(cls, login, password):
-        user = cls(session.query(User).filter(User.login == login).first())
+        entry = session.query(User).filter(User.login == login).first()
+        if entry is None:
+            return None
+        user = cls(entry)
         if user.check_password(password):
             return user
+        else:
+            raise ValueError
     
     def get_chats(self):
         for each in self.entry.dialogs:
             yield DialogConnector(each)
+    
+    @classmethod
+    def from_login(cls, login):
+        session.query(User).filter(User.login == login).first()
 
 class DialogConnector(BaseConnector):
     table = Dialog
@@ -155,3 +164,4 @@ class DialogConnector(BaseConnector):
 u1 = UserConnector.new(login='lmao', email='lmao', password='lmao').id
 u2 = UserConnector.new(login='lmaa', email='lmaa', password='lmaa').id
 DialogConnector.new(host_id=u1, users_id=[u1,u2])
+

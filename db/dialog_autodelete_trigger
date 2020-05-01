@@ -1,0 +1,5 @@
+CREATE TRIGGER dialog_autodelete AFTER DELETE ON connector
+WHEN NOT EXISTS (SELECT dial_id FROM connector WHERE OLD.dial_id = dial_id LIMIT 1)
+BEGIN
+DELETE FROM dialogs WHERE id = OLD.dial_id;
+END;
