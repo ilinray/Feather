@@ -126,7 +126,7 @@ class UserConnector(BaseConnector):
     
     def get_chats(self):
         for each in self.entry.dialogs:
-            yield DialogConnector(each)
+            yield DialogConnector(each.dialog)
     
     @classmethod
     def exists_from_login(cls, login):
@@ -142,7 +142,7 @@ class DialogConnector(BaseConnector):
 
     @classmethod
     def new(cls, **kwargs):
-        if 'name' not in kwargs.keys():
+        if kwargs['name'] is None:
             kwargs['name'] = 'Chat'
         dialog = super().new(table_attrs=cls.table_attrs, **kwargs)
         for id in kwargs['users_id']:
@@ -155,13 +155,20 @@ class DialogConnector(BaseConnector):
 
     def get_users(self):
         for each in self.entry.users:
-            yield UserConnector(each)
+            yield UserConnector(each.user)
     
     def get_users_id(self):
         for each in self.entry.users:
-            yield each.id
+            yield each.user_id
 
     def get_messages(self, count, offset):
         for each in self.entry.messages.order_by(Message.id.desc()).offset(offset).limit(count):
             yield MessageConnector(each)
 
+    def add_users(self, users_id):
+        for id in set(users_id) - set(self.get_users_id()):
+            entry = Connector()
+            entry.user_id = id
+            entry.dial_id = self.id
+            session.add(entry)
+        session.commit()

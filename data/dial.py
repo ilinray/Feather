@@ -19,12 +19,12 @@ class ChatsResource(Resource):
             return ({'status': 'ER', 'reason': 'user not found'}, 404)
         for dial in user.get_chats():
             dial_info = {'picture': ('d' + str(dial.id) + '.jpeg') if dial.entry.has_pic else None}
-            mp = len(list(dial.entry.users.all())) == 2
+            mp = len(list(dial.get_users_id())) != 2
             if mp:
                 dial_info['name'] = dial.entry.name
             else:
-                a, b, *_ = dial.entry.users
-                dial_info['name'] = b.login if a.id == uid else a.login
+                a, b, *_ = dial.get_users()
+                dial_info['name'] = b.entry.login if a.id == uid else a.entry.login
             info.append(dial_info)
         return {'status': 'OK', 'chats': info}
 
@@ -34,7 +34,7 @@ class ChatsResource(Resource):
         parser.add_argument('name')
         args = parser.parse_args()
         uid = args['uid']
-        users = request.json()['users_id']
+        users = request.json['users_id']
         if uid not in users:
             users.append(uid)
         if uid != session['logged_in']:
@@ -64,7 +64,6 @@ class UserInfoResource(Resource):
             return '1' if f else '0'
         else:
             return ''
-
 
 
 class MessageResource(Resource):
@@ -156,4 +155,26 @@ class DialogResource(Resource):
             return ({'status': 'ER', 'reason': 'dialog not found'}, 404)
         if uid not in (u.id for u in dial.get_users()):
             return({'status': 'ER', 'reason': 'You have no access to that dialog'}, 401)
-        
+        info = {'id': dial.id,
+                'pic': f'-2_{dial.id}' if dial.entry.has_pic else None,
+                'name': dial.entry.name,
+                'users_id': list(dial.get_users_id())}
+        return {'status': 'OK', 'info': info}, 200
+    
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('uid', type=int, required=True)
+        parser.add_argument('dialog_id', type=int, required=True)
+        args = parser.parse_args()
+        uid = args['uid']
+        did = args['dialog_id']
+        if uid != session['logged_in']:
+            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
+        dial = DialogConnector.from_id(int(did))
+        if dial is None:
+            return ({'status': 'ER', 'reason': 'dialog not found'}, 404)
+        if uid not in (u.id for u in dial.get_users()):
+            return({'status': 'ER', 'reason': 'You have no access to that dialog'}, 401)
+        users = request.json['users_id']
+        dial.add_users(users)
+        return {'status': 'OK'}, 200
