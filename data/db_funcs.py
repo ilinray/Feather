@@ -15,10 +15,6 @@ from connections import Base, create_session, global_init
 
 global_init('db/featherDB.sqlite')
 session = create_session()
-dialogs_path = Path.cwd()
-if dialogs_path.stem == 'data':
-    dialogs_path = Path.cwd().parent
-dialogs_path.joinpath('dialogs')
 
 
 def hashed_password(password):
@@ -30,44 +26,89 @@ def check_password(password, user_id):
     return session.query(User).get(user_id).hashed_password == hashed_password(password)
 
 
-class Message:
-    def __init__(self, user_id, text, files, datetime):
-        self.text = text
-        self.files = files
-        self.user_id = user_id
-        self.datetime = datetime.today()
-
-    def add2file(self, directory):
-        path = dialogs_path.joinpath(
-            directory, self.datetime.date().isoformat()).with_suffix('.csv')
-        with path.open('a') as fi:
-            writer(fi, deltimeter=';').writerow((self.user_id,
-                                                 self.text,
-                                                 ','.join(self.files),
-                                                 self.datetime.timestamp(timespec='seconds')))
-
-
-class UserConnector:
-    def __init__(self, user):
-        self.entry = user
-        self.id = user.id
-
+class BaseConnector:
+    table = None
+    table_attrs = set()
+    def __init__(self, entry):
+        self.id = entry.id
+        self.entry = entry
+    
     @classmethod
-    def from_id(cls, user_id):
+    def from_id(cls, id):
         try:
-            return cls(session.query(User).get(user_id))
+            return cls(session.query(cls.table).get(id))
         except:
             return None
 
     @classmethod
-    def new_user(cls, login, email, password):
-        user = User()
-        user.login = login
-        user.email = email
-        user.hashed_password = hashed_password(password)
-        session.add(user)
+    def new(cls, table_attrs=None, **kwargs):
+        entry = cls.table()
+        if table_attrs is None:
+            table_attrs = cls.table_attrs
+        foo = table_attrs - set(kwargs.keys())
+        if foo:
+            raise TypeError(f'Wrong args. Not found: {str(foo)}')
+        for k in table_attrs:
+            setattr(entry, k, kwargs[k])
+        session.add(entry)
         session.commit()
-        return cls(user)
+        return cls(entry)
+
+
+class MessageConnector(BaseConnector):
+    table = Message
+    table_attrs = set(('text',
+                       'user_id',
+                       'created_date',
+                       'dialog_id'))
+    @classmethod
+    def new(cls, files=[], **kwargs):
+        msg = super().new(table_attrs=cls.table_attrs, **kwargs)
+        for f in files:
+            FileConnector.register_file(kwargs['dialog_id'], f, msg.id)
+        return msg
+    
+    def to_dict(self):
+        files = []
+        for file in self.entry.files:
+            d = {'filename': file.filename,
+                 'file_id': f'{file.file_access}_{file.id}'}
+            d.append(files)
+        retval = {'id': self.id,
+                  'text': self.entry.text,
+                  'uid': self.entry.user_id,
+                  'datetime': self.entry.created_date.isoformat(timespec='seconds'),
+                  'files': files}
+        return retval
+
+    def delete(self):
+        session.query(Message).filter(Message.id == self.id).delete()
+
+
+class FileConnector(BaseConnector):
+    table = File
+    table_attrs = set(('filename',
+                       'message_id',
+                       'file_access'))
+
+    @classmethod
+    def register_file(cls, access, file, message_id):
+        id = cls.new(filename=file.filename, message_id=message_id, file_access=access).id
+        new_filename = f'{access}_{id}'
+        file.save('user_imgs/' + new_filename)
+
+
+class UserConnector(BaseConnector):
+    table = User
+    table_attrs = set(('login',
+                       'email',
+                       'password'))
+
+    @classmethod
+    def new(cls, **kwargs):
+        user = super().new(table_attrs=cls.table_attrs, **kwargs)
+        user.entry.hashed_password = hashed_password(kwargs['password'])
+        return user
 
     def check_password(self, password):
         return hashed_password(password) == self.entry.hashed_password
@@ -82,62 +123,35 @@ class UserConnector:
         for each in self.entry.dialogs:
             yield DialogConnector(each)
 
-class DialogConnector:
-    def __init__(self, dialog):
-        self.entry = dialog
-        self.id = dialog.id
+class DialogConnector(BaseConnector):
+    table = Dialog
+    table_attrs = set(('host_id', 'name'))
 
     @classmethod
-    def from_id(cls, dialog_id):
-        return cls(session.query(Dialog).get(dialog_id))
-
-    @classmethod
-    def new_dialog(cls, *users_id, name=None, password=None):
-        dialog = Dialog()
-        if len(users_id) > 2:
-            dialog.many_people = True
-        elif len(users_id) == 2:
-            dialog.many_people = False
-        else:
-            raise Exception('Strange amount of users')
-        dialog.name = name
-        if password is not None:
-            dialog.hashed_password = hashed_password(password)
-        session.add(dialog)
-        session.commit()
-        path = dialogs_path.joinpath(str(dialog.id))
-        path.mkdir(parents=True, exist_ok=True)
-        for id in users_id:
+    def new(cls, **kwargs):
+        if 'name' not in kwargs.keys():
+            kwargs['name'] = 'Chat'
+        dialog = super().new(table_attrs=cls.table_attrs, **kwargs)
+        for id in kwargs['users_id']:
             entry = Connector()
             entry.user_id = id
             entry.dial_id = dialog.id
             session.add(entry)
         session.commit()
-        return cls(dialog)
+        return dialog
 
+    def get_users(self):
+        for each in self.entry.users:
+            yield UserConnector(each)
+    
     def get_users_id(self):
-        return session.query(Connector).filter(Connector.dialog_id == self.id)
+        for each in self.entry.users:
+            yield each.id
 
-    def get_log_directory(self):
-        return self.entry.directory
+    def get_messages(self, count, offset):
+        for each in self.entry.messages.order_by(Message.id.desc()).offset(offset).limit(count):
+            yield MessageConnector(each)
 
-    def get_messages(self):
-        for path in dialogs_path.joinpath(str(self.id)).itemdir():
-            with path.open('r') as fi:
-                for row in reader(fi, deltimeter=';'):
-                    yield Message(row[0], row[1], row[2].split(','), datetime.fromisoformat(row[3]))
-
-    def has_password(self):
-        return self.entry.hashed_password is not None
-
-    def check_password(self, password):
-        return self.entry.hashed_password == hashed_password(password)
-
-    def send_msg(self, message):
-        message.add2file(str(self.entry.id))
-
-
-# DialogConnector.new_dialog(
-#     UserConnector.new_user('q', 'lmaao', 'lmao').id,
-#     UserConnector.new_user('lmao', 'lmao', 'lmao').id
-# )
+u1 = UserConnector.new(login='lmao', email='lmao', password='lmao').id
+u2 = UserConnector.new(login='lmaa', email='lmaa', password='lmaa').id
+DialogConnector.new(host_id=u1, users_id=[u1,u2])

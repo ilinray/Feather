@@ -12,8 +12,8 @@ from connections import Base
 
 class Connector(Base):
     __tablename__ = 'connector'
-    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True)
-    dial_id = Column(Integer, ForeignKey('dialogs.id', ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE", onupdate='CASCADE'), primary_key=True)
+    dial_id = Column(Integer, ForeignKey('dialogs.id', ondelete="CASCADE", onupdate='CASCADE'), primary_key=True)
     user = orm.relationship("User", back_populates="dialogs")
     dialog = orm.relationship("Dialog", back_populates="users")
 
@@ -30,9 +30,28 @@ class User(Base):
 class Dialog(Base):
     __tablename__ = 'dialogs'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, index=True, nullable=True)
+    name = Column(String, index=True)
     created_date = Column(DateTime, default=datetime.datetime.now)
-    many_people = Column(Boolean, default=False)
-    hashed_password = Column(LargeBinary, nullable=True)
     has_pic = Column(Boolean, default=False)
+    host_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL', onupdate='SET NULL'), nullable='True')
+    host = orm.relation('User')
     users = orm.relation('Connector', back_populates='dialog')
+    messages = orm.relation('Message', back_populates='dialog')
+
+class Message(Base):
+    __tablename__ = 'messages'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    text = Column(String, index=True, nullable=True)
+    dialog_id = Column(Integer, ForeignKey('dialogs.id', ondelete='CASCADE', onupdate='CASCADE'))
+    dialog = orm.relation('Dialog', back_populates='messages')
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL', onupdate='SET NULL'), nullable='True')
+    user = orm.relation('User')
+    created_date = Column(DateTime, default=datetime.datetime.now)
+    files = orm.relation('File')
+
+class File(Base):
+    __tablename__ = 'files'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    filename = Column(String)
+    file_access = Column(Integer)
+    message_id = Column(Integer, ForeignKey('messages.id', ondelete='CASCADE', onupdate='CASCADE'))
