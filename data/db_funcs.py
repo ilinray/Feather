@@ -47,12 +47,16 @@ class BaseConnector:
             table_attrs = cls.table_attrs
         foo = table_attrs - set(kwargs.keys())
         if foo:
-            raise TypeError(f'Wrong args. Not found: {str(foo)}')
+            raise TypeError(f'Wrong args. Not found: {foo}')
         for k in table_attrs:
             setattr(entry, k, kwargs[k])
         session.add(entry)
         session.commit()
         return cls(entry)
+
+    @classmethod
+    def exists_from_id(cls, id):
+        return session.query(cls.table).get(id) is not None
 
 
 class MessageConnector(BaseConnector):
@@ -73,7 +77,7 @@ class MessageConnector(BaseConnector):
         for file in self.entry.files:
             d = {'filename': file.filename,
                  'file_id': f'{file.file_access}_{file.id}'}
-            d.append(files)
+            files.append(d)
         retval = {'id': self.id,
                   'text': self.entry.text,
                   'uid': self.entry.user_id,
@@ -133,15 +137,16 @@ class UserConnector(BaseConnector):
     def exists_from_login(login):
         return session.query(User).filter(User.login == login).first() is not None
 
-    @staticmethod
-    def exists_from_id(id):
-        return session.query(User).get(id) is not None
-    
     @classmethod
     def from_login(cls, login):
         entry = session.query(User).filter(User.login == login).first()
         if entry is not None:
             return cls(entry)
+
+    @staticmethod
+    def delete_by_id(id):
+        session.query(User).filter(User.id == id).delete()
+        session.commit()
 
 
 class DialogConnector(BaseConnector):
@@ -182,4 +187,8 @@ class DialogConnector(BaseConnector):
             entry.user_id = id
             entry.dial_id = self.id
             session.add(entry)
+        session.commit()
+
+    def delete_users(self, users_id):
+        session.query(Connector).filter(Connector.dial_id == self.id, Connector.user_id.in_(users_id)).delete()
         session.commit()

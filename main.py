@@ -39,6 +39,8 @@ api.add_resource(dial.ChatsResource, '/api/chats')
 api.add_resource(dial.UserInfoResource, '/api/users')
 api.add_resource(dial.MessageResource, '/api/messages')
 api.add_resource(dial.DialogResource, '/api/dialogs')
+api.add_resource(dial.SelfResource, '/api/self')
+api.add_resource(dial.HostedDialogResource, '/api/hosted')
 
 if __name__ == '__main__':
     app.run(port=8080, host='0.0.0.0')
