@@ -14,24 +14,25 @@ if (localStorage.getItem('user')) {
             <div class="login-input">
                 <input type="text" id="nickname" autocomplete="nickname">
             </div>
-            <small class="text-danger hidden">It's empty!</small>
+            <small class="text-danger hidden">Fill in this area!</small>
         </div>
         <div class="form-group">
             <label for="email">Email</label>
             <div class="login-input">
                 <input type="email" id="email" autocomplete="email">
             </div>
-            <small class="text-danger hidden">It's not looks like email!</small>
+            <small class="text-danger hidden">It doesn't look like to be email!</small>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
             <div class="login-input">
                 <input type="password" id="password" autocomplete="new-password">
             </div>
-            <small class="text-danger hidden">It's empty!</small>
+            <small class="text-danger hidden">Fill in this area!</small>
         </div>
         <div class="form-group">
             <button type="button" id="send" class="b b-pr disabled"><img src="/icon.png" class="feather"><span>Sign up</span></button>
+            <button type="button" onclick="dimm('/login')" class="b b-tr ml-2">Log in</button>
         </div>
         <div class="form-group">
             <div id="error" class="alert alert-danger text-danger hidden" role="alert">
