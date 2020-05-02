@@ -10,57 +10,113 @@
 <div id="chat">
     <header>
         <div class="left">
-            <button id="exit" type="button" class="back"><i class="material-icons">exit_to_app</i></button>
-            <h4>Чаты</h4>
+            <button id="exit" type="button" @click="exit" class="back"><i class="material-icons">exit_to_app</i></button>
+            <h4>Chats</h4>
         </div>
         <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
     </header>
     <div class="wrpr"></div>
     <div class="main-chat">
         <div class="chat-list">
+            <div id="new-chat" onclick="$('#newChatDialog').modal('show')">
+                <i class="material-icons mr-2">add</i><span>Create new</span>
+            </div>
             <div class="one-chat">
                 <img src="https://sun9-31.userapi.com/c854324/v854324705/18948e/QfloruEg9_4.jpg" alt="">
                 <span>Nickname</span>
             </div>
         </div>
         <div class="chat">
-            <div class="center">Выберите чат</div>
+            <div class="center">Choose chat</div>
+        </div>
+    </div>
+    <div class="modal fade" id="newChatDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create chat</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="chatName">Chat name</label>
+                    <div class="login-input">
+                        <input v-model="chatName" type="text" class="w-100" id="chatName" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="chatUsers">Chat name</label>
+                    <div class="login-input">
+                        <select multiple id="chatUsers">
+                            <option>1</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="$('#newChatDialog').modal('hide')" class="b b-tr">Cancel</button>
+                <button onclick="newChat" class="b b-pr">Create</button>
+            </div>
+            </div>
         </div>
     </div>
 </div>
 <script>
-
-    $("#exit").click((e) => {
+var app = new Vue({
+  el: '#chat',
+  data: {
+    chats: null,
+    chatName: ""
+  },
+  methods: {
+      newChat: () => {
+        $.post(`/api/chats?uid=${localStorage.getItem('user')}&name=${encodeURIComponent(app.chatName)}`, {
+        }).then((r) => {
+            app.$set(app.$data, 'chats', r.chats);
+        })
+      },
+      getChats: () => {
+        $.get("/api/chats", {
+            "uid": localStorage.getItem('user')
+        }).then((r) => {
+            app.$set(app.$data, 'chats', r.chats);
+        })
+      },
+      exit: () => {
         localStorage.removeItem("user");
         dimm('/');
-    })
+      }
+  }
+})
 
-    $.get("/api/chats", {
-        "uid": localStorage.getItem('user')
-    })
-    
-    const dimm = (loc) => {
-        var size = 0;
-        var acc = 70;
-        var bd = setInterval(() => {
-            $("#big-dimmer").css("clip-path",`circle(${size}px at 3rem 2rem)`);
-            size += acc;
-            acc += 10;
-            if (size > window.innerHeight*2) {
-                clearInterval(bd);
-                window.location = loc
-            }
-        }, 50)
-    }
-    const activate = (e) => {e.target.parentNode.classList.add("active")}
-    const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
-    const checkall = () => {
-        if (email && password) {
-            $("#send").removeClass("disabled");
-        } else {
-            $("#send").addClass("disabled");
+const activate = (e) => {e.target.parentNode.classList.add("active")}
+const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
+
+$("#chatName").focus(activate);
+$("#chatName").blur(deactivate);
+
+const dimm = (loc) => {
+    var size = 0;
+    var acc = 70;
+    var bd = setInterval(() => {
+        $("#big-dimmer").css("clip-path",`circle(${size}px at 3rem 2rem)`);
+        size += acc;
+        acc += 10;
+        if (size > window.innerHeight*2) {
+            clearInterval(bd);
+            window.location = loc
         }
+    }, 50)
+}
+const checkall = () => {
+    if (email && password) {
+        $("#send").removeClass("disabled");
+    } else {
+        $("#send").addClass("disabled");
     }
-    $("#big-dimmer").css("clip-path",`circle(0px at 3rem 2rem)`);
+}
+$("#big-dimmer").css("clip-path",`circle(0px at 3rem 2rem)`);
 </script>
 {% endblock %}
