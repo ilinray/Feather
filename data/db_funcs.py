@@ -67,7 +67,7 @@ class MessageConnector(BaseConnector):
         for f in files:
             FileConnector.register_file(kwargs['dialog_id'], f, msg.id)
         return msg
-    
+
     def to_dict(self):
         files = []
         for file in self.entry.files:
@@ -115,13 +115,34 @@ class UserConnector(BaseConnector):
 
     @classmethod
     def login(cls, login, password):
-        user = cls(session.query(User).filter(User.login == login).first())
+        entry = session.query(User).filter(User.login == login).first()
+        if entry is None:
+            return None
+        user = cls(entry)
         if user.check_password(password):
             return user
-    
-    def get_chats(self):
+        else:
+            raise ValueError
+
+    @property
+    def chats(self):
         for each in self.entry.dialogs:
-            yield DialogConnector(each)
+            yield DialogConnector(each.dialog)
+
+    @staticmethod
+    def exists_from_login(login):
+        return session.query(User).filter(User.login == login).first() is not None
+
+    @staticmethod
+    def exists_from_id(id):
+        return session.query(User).get(id) is not None
+    
+    @classmethod
+    def from_login(cls, login):
+        entry = session.query(User).filter(User.login == login).first()
+        if entry is not None:
+            return cls(entry)
+
 
 class DialogConnector(BaseConnector):
     table = Dialog
@@ -129,7 +150,7 @@ class DialogConnector(BaseConnector):
 
     @classmethod
     def new(cls, **kwargs):
-        if 'name' not in kwargs.keys():
+        if kwargs['name'] is None:
             kwargs['name'] = 'Chat'
         dialog = super().new(table_attrs=cls.table_attrs, **kwargs)
         for id in kwargs['users_id']:
@@ -140,18 +161,25 @@ class DialogConnector(BaseConnector):
         session.commit()
         return dialog
 
-    def get_users(self):
+    @property
+    def users(self):
         for each in self.entry.users:
-            yield UserConnector(each)
+            yield UserConnector(each.user)
     
-    def get_users_id(self):
+    @property
+    def users_id(self):
         for each in self.entry.users:
-            yield each.id
+            yield each.user_id
 
     def get_messages(self, count, offset):
-        for each in self.entry.messages.order_by(Message.id.desc()).offset(offset).limit(count):
+        query = session.query(Message).filter(Message.dialog_id == self.id).order_by(Message.id.desc()).offset(offset).limit(count)
+        for each in query:
             yield MessageConnector(each)
 
-u1 = UserConnector.new(login='lmao', email='lmao', password='lmao').id
-u2 = UserConnector.new(login='lmaa', email='lmaa', password='lmaa').id
-DialogConnector.new(host_id=u1, users_id=[u1,u2])
+    def add_users(self, users_id):
+        for id in set(users_id) - set(self.users_id):
+            entry = Connector()
+            entry.user_id = id
+            entry.dial_id = self.id
+            session.add(entry)
+        session.commit()

@@ -16,9 +16,9 @@ class AuthResource(Resource):
                 session['logged_in'] = user.id
                 return ({'status': "OK", 'uid': user.id}, 200)
             else:
-                return ({'status': "ER", 'reason': 'wrong password'}, 401)
+                return ({'status': "ER", 'reason': 'user not found'}, 401)
         except:
-            return ({'status': "ER", 'reason': 'user not found'}, 404)
+            return ({'status': "ER", 'reason': 'wrong password'}, 404)
     # Sign up
     def post(self):
         parser = reqparse.RequestParser()
@@ -27,7 +27,7 @@ class AuthResource(Resource):
         parser.add_argument('password', required=True)
         args = parser.parse_args()
         try: 
-            uid = UserConnector.new_user(args['login'], args['email'], args['password']).id
+            uid = UserConnector.new(login=args['login'], email=args['email'], password=args['password']).id
             session['logged_in'] = uid
             return ({'status': "OK", 'uid': uid}, 200)
         except BaseException as e:

@@ -3,107 +3,130 @@ from flask import jsonify, session
 import sys
 from .db_funcs import UserConnector, DialogConnector, MessageConnector
 from datetime import datetime
+from .validators import *
 
 
+@check(user_exists, correct_uid)
 class ChatsResource(Resource):
-    def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=int, required=True)
-        args = parser.parse_args()
-        uid = args['uid']
-        if uid != session['logged_in']:
-            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
+    def get(self, uid):
         info = []
         user = UserConnector.from_id(uid)
-        if user is None:
-            return ({'status': 'ER', 'reason': 'user not found'}, 404)
-        for dial in user.get_chats():
-            dial_info = {'picture': ('d' + str(dial.id) + '.jpeg') if dial.entry.has_pic else None}
-            mp = len(list(dial.entry.users.all())) == 2
+        for dial in user.chats:
+            mp = len(list(dial.users_id)) != 2
             if mp:
+                dial_info = {'picture': f'-2_{dial.id}' if dial.entry.has_pic else None}
                 dial_info['name'] = dial.entry.name
             else:
-                a, b, *_ = dial.entry.users
-                dial_info['name'] = b.login if a.id == uid else a.login
+                a, b, *_ = dial.users
+                enemy = b if a.user_id == uid else a
+                dial_info = {'picture': f'-1_{enemy.id}' if enemy.has_pic else None}
+                dial_info['name'] = enemy.login
             info.append(dial_info)
-        return {'status': 'OK', 'chats': info}
+        return {'status': 'OK', 'chats': info}, 200
 
-    def post(self):
+    def post(self, uid):
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=int, required=True)
         parser.add_argument('name')
         args = parser.parse_args()
-        uid = args['uid']
-        users = request.json()['users_id']
+        users = request.json['users_id']
         if uid not in users:
             users.append(uid)
-        if uid != session['logged_in']:
-            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
+        for uid_ in users:
+            guest = UserConnector.from_id(uid_)
+            if guest is None:
+                return ({'status': 'ER', 'reason': 'user not found'}, 404)
+        return {'status': 'OK',
+                'id': DialogConnector.new(host_id=uid, name=args['name'], users_id=users).id}
+
+
+class UserInfoResource(Resource):
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('uid', type=int, defaut=0)
+        parser.add_argument('login', defaut='')
+        parser.add_argument('exists', type=int, defaut=0)
+        args = parser.parse_args()
+        login = args['login']
+        uid = args['uid']
+        if args['exists']:
+            if login:
+                f = UserConnector.exists_from_login(login)
+            elif args['uid']:
+                f = UserConnector.exists_from_id(uid)
+            else:
+                f = 0
+            return '1' if f else '0'
         else:
-            for uid_ in users:
-                guest = UserConnector.from_id(uid_)
-                if guest is None:
-                    return ({'status': 'ER', 'reason': 'user not found'}, 404)
-            return {'status': 'OK',
-                    'id': DialogConnector.new(host_id=uid, name=args['name'], users_id=users).id}
+            if login:
+                UserConnector.from_login()
+
+    @check(user_exists, correct_uid)
+    def post(self, uid):
+        request.files.values()[0].save(f'user_imgs/-1_{uid}')
+        return {'status': 'OK'}, 200
 
 
 class MessageResource(Resource):
-    def get(self):
+    @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
+    def get(self, uid, dial, dialog_id):
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=int, required=True)
-        parser.add_argument('dialog_id', type=int, required=True)
         parser.add_argument('offset', type=int, default=0)
         parser.add_argument('count', type=int, default=20)
         args = parser.parse_args()
-        if args['uid'] != session['logged_in']:
-            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
-        else:
-            dial = DialogConnector.from_id(args['dialog_id'])
-            if dial is None:
-                return ({'status': 'ER', 'reason': 'dialog not found'}, 404)
-            if args['uid'] not in dial.get_users_id():
-                return ({'status': 'ER', 'reason': 'you are not in chat'}, 401)
-            msgs = dial.get_messages(args['count'], args['offset'])
-            return {'status': 'OK',
-                    'msgs': [m.to_dict() for m in msgs]}
-    
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=int, required=True)
-        parser.add_argument('dialog_id', type=int, required=True)
-        args = parser.parse_args()
-        uid = args['uid']
-        did = args['dialog_id']
-        if uid != session['logged_in']:
-            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
-        dial = DialogConnector.from_id(int(did))
-        if dial is None:
-            return ({'status': 'ER', 'reason': 'dialog not found'}, 404)
-        if uid not in (u.id for u in dial.get_users()):
-            return({'status': 'ER', 'reason': 'You have no access to that dialog'}, 401)
+        msgs = dial.get_messages(args['count'], args['offset'])
+        return {'status': 'OK',
+                'msgs': [m.to_dict() for m in msgs]}
+
+    @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
+    def post(self, uid, dial, dialog_id):
         text = request.form['text']
         time = datetime.now()
         files = request.files.values()
-        id = MessageConnector.new(user_id=uid, text=text, files=files,time=time, dialog_id=did).id
+        id = MessageConnector.new(user_id=uid, text=text, files=files,time=time, dialog_id=dialog_id).id
         return {'status': 'OK', 'id': id}
-    
-    def delete(self):
+
+    @check(user_exists, correct_uid)
+    def delete(self, uid):
         parser = reqparse.RequestParser()
-        parser.add_argument('uid', type=int, required=True)
         parser.add_argument('id', type=int, required=True)
         args = parser.parse_args()
-        uid = args['uid']
         mid = args['id']
-        if uid != session['logged_in']:
-            return ({'status': 'ER', 'reason': 'you are not logged in'}, 401)
         msg = MessageConnector.from_id(mid)
         if msg is None:
             return ({'status': 'ER', 'reason': 'message not found'}, 404)
         if msg.entry.user_id != uid:
-            msg.delete()
-            return {'status': 'OK'}
-    
-    def patch(self):
-        '''in process'''
-        return 'TODO'
+            return ({'status': 'ER', 'reason': 'not your message'}, 401)
+        msg.delete()
+        return {'status': 'OK'}
+
+    @check(user_exists, correct_uid)
+    def patch(self, uid):
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', type=int, required=True)
+        args = parser.parse_args()
+        mid = args['id']
+        msg = MessageConnector.from_id(mid)
+        if msg is None:
+            return ({'status': 'ER', 'reason': 'message not found'}, 404)
+        if msg.entry.user_id != uid:
+            return ({'status': 'ER', 'reason': 'not your message'}, 401)
+        msg.entry.text = request.form['text']
+        return {'status': 'OK'}
+
+
+@check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
+class DialogResource(Resource):
+    def get(self, uid, dialog_id, dial):
+        info = {'id': dial.id,
+                'pic': f'-2_{dial.id}' if dial.entry.has_pic else None,
+                'name': dial.entry.name,
+                'users_id': list(dial.users_id)}
+        return {'status': 'OK', 'info': info}, 200
+
+    def post(self, uid, dialog_id, dial):
+        users = request.json['users_id']
+        for guest_uid in users:
+            if not UserConnector.exists_from_id(guest_uid):
+                return {'status': 'ER', 'reason': f'user {guest_uid} not found'}, 404
+        dial.add_users(users)
+        return {'status': 'OK'}, 200
