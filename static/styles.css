@@ -141,43 +141,12 @@ img {
 }
 .b-tr:hover {
     color: white;
-}
-.b-tr::after {
-    content: "";
-    display: block;
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-radius: 7px;
-    left: 50%;
-    top: 50%;
-    background-color: #22a233;
-    transition: all 0.13s;
-    z-index: 1;
-}
-.b-tr:hover::after {
-    width: 100%;
-    height: 100%;
-    left: 0;
-    top: 0;
+    box-shadow: inset 0 0 0 2rem #22a233;
 }
 
 .b.disabled {
     background: #777;
     pointer-events: none;
-}
-.add-chat {
-    border: none;
-    background: #777;
-    color: white;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-}
-.add-chat:hover {
-    background-color: #666;
 }
 
 .content {
@@ -477,6 +446,19 @@ label {
     height: 100%;
 }
 
+#new-chat {
+    background-color: #3366E2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.2rem 0;
+    cursor: pointer;
+}
+#new-chat > i, #new-chat > span {color: white;}
+#new-chat:hover {background-color: #2555d2;}
+
 .center {
     width: 100%;
     height: 100%;
@@ -485,6 +467,41 @@ label {
     align-items: center;
 }
 
+#app.dark .modal-content {
+    background-color: #222;
+}
+#app.dark .modal-header, #app.dark .modal-footer {
+    border-color: #333;
+}
+#app.dark .close > span {
+    color: white;
+}
+.w-100 {
+    width: 100%;
+}
+
+.login-input > select {
+    width: 100%;
+    background-color: transparent;
+    box-shadow: 0 0 0 2px transparent;
+    border: none;
+    padding: 0.3rem;
+}
+.login-input > select:focus {
+    box-shadow: 0 0 0 2px #3366E2;
+}
+#app.dark .login-input > select > option {
+    color: white;
+}
+#app.dark .login-input > select > option:checked {
+    background-color: #ffffff!important;
+    box-shadow: 0 0 0 2px #3366E2, inset 0 0 0 100rem #222;
+    color: white;
+}
+.login-input > select > option:checked {
+    background-color: #ffffff!important;
+    box-shadow: 0 0 0 2px #3366E2, inset 0 0 0 100rem #3366E2;
+}
 
 #chat .center {
     font-size: 1.3rem;
