@@ -67,7 +67,7 @@ class MessageConnector(BaseConnector):
         for f in files:
             FileConnector.register_file(kwargs['dialog_id'], f, msg.id)
         return msg
-    
+
     def to_dict(self):
         files = []
         for file in self.entry.files:
@@ -123,18 +123,26 @@ class UserConnector(BaseConnector):
             return user
         else:
             raise ValueError
-    
-    def get_chats(self):
+
+    @property
+    def chats(self):
         for each in self.entry.dialogs:
             yield DialogConnector(each.dialog)
-    
-    @classmethod
-    def exists_from_login(cls, login):
+
+    @staticmethod
+    def exists_from_login(login):
         return session.query(User).filter(User.login == login).first() is not None
 
-    @classmethod
-    def exists_from_id(cls, id):
+    @staticmethod
+    def exists_from_id(id):
         return session.query(User).get(id) is not None
+    
+    @classmethod
+    def from_login(cls, login):
+        entry = session.query(User).filter(User.login == login).first()
+        if entry is not None:
+            return cls(entry)
+
 
 class DialogConnector(BaseConnector):
     table = Dialog
@@ -153,20 +161,23 @@ class DialogConnector(BaseConnector):
         session.commit()
         return dialog
 
-    def get_users(self):
+    @property
+    def users(self):
         for each in self.entry.users:
             yield UserConnector(each.user)
     
-    def get_users_id(self):
+    @property
+    def users_id(self):
         for each in self.entry.users:
             yield each.user_id
 
     def get_messages(self, count, offset):
-        for each in self.entry.messages.order_by(Message.id.desc()).offset(offset).limit(count):
+        query = session.query(Message).filter(Message.dialog_id == self.id).order_by(Message.id.desc()).offset(offset).limit(count)
+        for each in query:
             yield MessageConnector(each)
 
     def add_users(self, users_id):
-        for id in set(users_id) - set(self.get_users_id()):
+        for id in set(users_id) - set(self.users_id):
             entry = Connector()
             entry.user_id = id
             entry.dial_id = self.id
