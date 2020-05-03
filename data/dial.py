@@ -33,14 +33,18 @@ class ChatsResource(Resource):
         json = request.get_json()
         users = set(json.get('users_id', []))
         logins = json.get('users_logins', [])
+        not_exist = []
         for login in logins:
-            users.add(UserConnector.from_login(login).id)
+            user = UserConnector.from_login(login)
+            if user is None:
+                return ({'status': 'ER', 'reason': f'user {login} not found', 'login': login}, 404)
+            users.add(user.id)
         if uid not in users:
             users.add(uid)
         for uid_ in users:
             guest = UserConnector.from_id(uid_)
             if guest is None:
-                return ({'status': 'ER', 'reason': 'user not found'}, 404)
+                return ({'status': 'ER', 'reason': f'user {uid} not found', 'uid': uid}, 404)
         return {'status': 'OK',
                 'id': DialogConnector.new(host_id=uid, name=json['name'], users_id=users).id}
 
