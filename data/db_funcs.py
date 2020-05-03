@@ -148,7 +148,7 @@ class UserConnector(BaseConnector):
         session.query(User).filter(User.id == id).delete()
         session.commit()
 
-print(UserConnector.from_login('lmaa'))
+
 class DialogConnector(BaseConnector):
     table = Dialog
     table_attrs = set(('host_id', 'name'))
