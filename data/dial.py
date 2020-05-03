@@ -36,7 +36,7 @@ class ChatsResource(Resource):
         for login in logins:
             users.add(UserConnector.from_login(login).id)
         if uid not in users:
-            users.append(uid)
+            users.add(uid)
         for uid_ in users:
             guest = UserConnector.from_id(uid_)
             if guest is None:
