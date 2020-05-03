@@ -1,0 +1,10 @@
+CREATE TRIGGER dialog_host_leave AFTER DELETE ON connector
+WHEN 
+    (OLD.user_id = (SELECT host_id FROM dialogs WHERE OLD.dial_id = id LIMIT 1))
+        AND 
+    (EXISTS (SELECT dial_id FROM connector WHERE OLD.dial_id = dial_id LIMIT 1))
+BEGIN
+UPDATE dialogs
+SET host_id = NULL
+WHERE id = OLD.dial_id;
+END;

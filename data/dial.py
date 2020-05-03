@@ -30,10 +30,11 @@ class ChatsResource(Resource):
         return {'status': 'OK', 'chats': info}, 200
 
     def post(self, uid):
-        parser = reqparse.RequestParser()
-        parser.add_argument('name')
-        args = parser.parse_args()
-        users = request.json['users_id']
+        json = request.get_json()
+        users = set(json.get('users_id', []))
+        logins = json.get('users_logins', [])
+        for login in logins:
+            users.add(UserConnector.from_login(login).id)
         if uid not in users:
             users.append(uid)
         for uid_ in users:
@@ -41,7 +42,7 @@ class ChatsResource(Resource):
             if guest is None:
                 return ({'status': 'ER', 'reason': 'user not found'}, 404)
         return {'status': 'OK',
-                'id': DialogConnector.new(host_id=uid, name=args['name'], users_id=users).id}
+                'id': DialogConnector.new(host_id=uid, name=json['name'], users_id=users).id}
 
 
 class UserInfoResource(Resource):
