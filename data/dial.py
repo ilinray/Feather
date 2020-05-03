@@ -24,15 +24,17 @@ class PicturesResource(Resource):
         if file.entry.file_access != access:
             return {'status': 'ER', 'reason': 'file not found'}, 404
         user_chats = UserConnector.from_id(uid).chats
-        if access == -1:
+        try:
+            if access == -1:
+                return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
+            f = False
+            for chat in user_chats:
+                f = f or chat.id == access
+            if not f:
+                return {'status': 'ER', 'reason': 'no access'}, 401
             return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
-        f = False
-        for chat in user_chats:
-            f = f or chat.id == access
-        if not f:
-            return {'status': 'ER', 'reason': 'no access'}, 401
-        return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
-
+        except:
+            return {'status': 'ER', 'reason': 'file timed out'}, 401
 
 @check(user_exists, correct_uid)
 class ChatsResource(Resource):
