@@ -4,9 +4,11 @@ import sys
 from .db_funcs import UserConnector, DialogConnector, MessageConnector, FileConnector
 from datetime import datetime
 from .validators import *
+from PIL import Image
+from pathlib import Path
 
 
-OK = {'status': 'OK', 'reason': 'u asked for it 0_o lmao'}, 200
+OK = {'status': 'OK'}, 200
 
 
 class PicturesResource(Resource):
@@ -20,13 +22,27 @@ class PicturesResource(Resource):
             access, file_id = int(access), int(file_id)
         except:
             return {'status': 'ER', 'reason': 'bad request'}, 400
+        if access == -1:
+            try:
+                return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
+            except:
+                return send_file(f'user_imgs/avatar.jpeg')
+        user_chats = UserConnector.from_id(uid).chats
+        if access == -2:
+            f = False
+            for chat in user_chats:
+                f = f or chat.id == file_id
+                print(chat.id)
+            if not f:
+                return {'status': 'ER', 'reason': 'no access'}, 401
+            try:
+                return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
+            except:
+                return send_file(f'user_imgs/dialog.jpeg')
         file = FileConnector.from_id(file_id)
         if file.entry.file_access != access:
             return {'status': 'ER', 'reason': 'file not found'}, 404
-        user_chats = UserConnector.from_id(uid).chats
         try:
-            if access == -1:
-                return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
             f = False
             for chat in user_chats:
                 f = f or chat.id == access
@@ -120,7 +136,16 @@ class SelfResource(Resource):
         files = list(request.files.values())
         if not files:
             return {'status': 'ER', 'reason': 'no file provided'}, 400
-        files[0].save(f'user_imgs/-1_{uid}')
+        file = files[0]
+        try:
+            img = Image.open(file)
+        except:
+            return {'status': 'ER', 'reason': 'some image issue'}, 403
+        else:
+            if img.size[0] != img.size[1]:
+                return {'status': 'ER', 'reason': 'image is not square'}, 403
+            img.thumbnail((100, 100))
+            img.save(f'user_imgs/-1_{uid}.png')
         return OK
 
     def delete(self, uid):
@@ -193,7 +218,16 @@ class HostedDialogResource(Resource):
         files = list(request.files.values())
         if not files:
             return {'status': 'ER', 'reason': 'no file provided'}, 400
-        files[0].save(f'user_imgs/-2_{dialog_id}')
+        file = files[0]
+        try:
+            img = Image.open(file)
+        except:
+            return {'status': 'ER', 'reason': 'some image issue'}, 403
+        else:
+            if img.size[0] != img.size[1]:
+                return {'status': 'ER', 'reason': 'image is not square'}, 403
+            img.thumbnail((100, 100))
+            img.save(f'user_imgs/-2_{dialog_id}.png')
         return OK
 
     def delete(self, dial, **_):
