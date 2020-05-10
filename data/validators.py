@@ -64,25 +64,23 @@ def get_args(**needed):
 @get_args(uid=int)
 def correct_uid(*args, **kwargs):
     uid = kwargs['uid']
-    f = session['logged_in'] != uid
-    if f:
+    if session['logged_in'] != uid:
         raise create_http_error(401, 'you are not logged in')
     return {'uid': uid}
 
 @get_args(dialog_id=int)
 def dialog_exists(*args, **kwargs):
-    dialog_id = kwargs['dialog_id']
-    dial = DialogConnector.from_id(dialog_id)
-    if dial is None:
-        raise create_http_error(404, f'dialog {dialog_id} not found')
-    return {'dial': dial,
-            'dialog_id': dialog_id}
+    if not DialogConnector.exists_from_id(kwargs['dialog_id']):
+        raise create_http_error(404, f'dialog {kwargs["dialog_id"]} not found')
+    return {'dialog_id': kwargs['dialog_id']}
 
-@get_args(uid=int, dial=DialogConnector)
+@get_args(uid=int, dialog_id=int)
 def dialog_belongs_to_user(*args, **kwargs):
-    if kwargs['uid'] not in kwargs['dial'].users_id:
+    dial = DialogConnector.from_id(kwargs['dialog_id'])
+    if kwargs['uid'] not in dial.users_id:
         raise create_http_error(401, 'you are not in the chat')
-    return {'dial': kwargs['dial']}
+    return {'dialog_id': kwargs['dialog_id'],
+            'dial': dial}
 
 @get_args(uid=int)
 def user_exists(*args, **kwargs):
@@ -90,4 +88,24 @@ def user_exists(*args, **kwargs):
         raise create_http_error(404, f'user {kwargs["uid"]} not found')
     return {'uid': kwargs['uid']}
 
-#@get_args(me)
+@get_args(message_id=int)
+def message_exists(*args, **kwargs):
+    if not MessageConnector.exists_from_id(kwargs['message_id']):
+        raise create_http_error(404, f'message {kwargs["message_id"]} not found')
+    return {'message_id': kwargs['message_id']}
+
+@get_args(uid=int, message_id=int)
+def message_belongs_to_user(*args, **kwargs):
+    msg = MessageConnector.from_id(kwargs['message_id'])
+    if msg.entry.user_id != kwargs['uid']:
+        raise create_http_error(401, f'not your message')
+    return {'message_id': kwargs['message_id'],
+            'msg': msg}
+
+@get_args(uid=int, dialog_id=int)
+def dialog_hosted_by_user(*args, **kwargs):
+    dial = DialogConnector.from_id(kwargs['dialog_id'])
+    if kwargs['uid'] != dial.entry.host_id:
+        raise create_http_error(401, 'you are not the host')
+    return {'dialog_id': kwargs['dialog_id'],
+            'dial': dial}

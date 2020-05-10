@@ -26,10 +26,10 @@
             <div id="new-chat" onclick="$('#newChatDialog').modal('show')">
                 <i class="material-icons mr-2">add</i><span>Create new</span>
             </div>
-            <div class="one-chat">
-                <img src="https://sun9-31.userapi.com/c854324/v854324705/18948e/QfloruEg9_4.jpg" alt="">
-                <span>Nickname</span>
-            </div>
+            <a class="one-chat" v-for="chat in chats" :href="`/chat/${chat.dialog_id}`">
+                <img src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png" alt="">
+                <span v-text="chat.name"></span>
+            </a>
         </div>
         <div class="chat">
             <div class="center">Choose chat</div>
@@ -53,17 +53,18 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="chatUsers">Chat name</label>
+                    <label>Add users</label>
                     <div class="login-input">
-                        <select multiple id="chatUsers">
-                            <option>1</option>
-                        </select>
+                        <input @change="a" v-model="users" id="chatUsers" type="text" class="w-100" autocomplete="off">
                     </div>
+                    <small @click="a">Use ',' (comma) or ', ' (comma + space) as separator</small>
+                    <small style="display: block;" v-if="error" class="text-danger">Unknown user "<span v-text="error">"</span></small>
+                    <input v-if="sa != ''" readonly class="input-hide w-100" v-model="sa">
                 </div>
             </div>
             <div class="modal-footer">
                 <button onclick="$('#newChatDialog').modal('hide')" class="b b-tr">Cancel</button>
-                <button onclick="newChat" class="b b-pr">Create</button>
+                <button @click="newChat" class="b b-pr">Create</button>
             </div>
             </div>
         </div>
@@ -72,15 +73,32 @@
 <script>
 var app = new Vue({
   el: '#chat',
-  data: {
+  data: () => ({
     chats: null,
-    chatName: ""
-  },
+    chatName: "",
+    users: "",
+    sa: "",
+    error: ''
+  }),
   methods: {
       newChat: () => {
-        $.post(`/api/chats?uid=${localStorage.getItem('user')}&name=${encodeURIComponent(app.chatName)}`, {
-        }).then((r) => {
-            app.$set(app.$data, 'chats', r.chats);
+        $.ajax({
+            method: "POST",
+            url: `/api/chats?uid=${localStorage.getItem('user')}`,
+            data: JSON.stringify({
+                name: app.chatName,
+                users_logins: app.users.split(/ +/).join("").split(",")
+            }),
+            headers: {'Content-Type': "application/json"},
+            success: (r) => {
+                app.$set(app.$data, 'error', "");
+                $('#newChatDialog').modal('hide');
+                app.getChats();
+            },
+            error: (r) => {
+                app.$set(app.$data, 'error', r.responseJSON.login);
+                app.getChats();
+            }
         })
       },
       getChats: () => {
@@ -93,15 +111,22 @@ var app = new Vue({
       exit: () => {
         localStorage.removeItem("user");
         dimm('/');
+      },
+      a () {
+        this.sa = "Users: \"" + this.users.split(/ +/).join("").split(",").join("\", \"") + "\"";
       }
   }
 })
+
+app.getChats();
 
 const activate = (e) => {e.target.parentNode.classList.add("active")}
 const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
 
 $("#chatName").focus(activate);
 $("#chatName").blur(deactivate);
+$("#chatUsers").focus(activate);
+$("#chatUsers").blur(deactivate);
 
 const dimm = (loc) => {
     var size = 0;

@@ -7,43 +7,207 @@
     }
 </script>
 <div id="big-dimmer"></div>
+<div id="error-dimmer" class="hidden">
+    <h1>Error!</h1>
+    <p id="error"></p>
+    <a id="logout">Logout</a>
+</div>
 <div id="chat">
     <header>
         <div class="left">
-            <button id="back" type="button" class="back"><i class="material-icons">arrow_back</i></button>
-            <h4>Чаты</h4>
+            <a id="exit" href="/chats" class="back"><i class="material-icons">chevron_left</i></a>
+            <h4>Chats</h4>
         </div>
         <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
     </header>
+    <div class="wrpr"></div>
+    <div class="main-chat">
+        <div class="chat-list">
+            <div id="new-chat" onclick="$('#newChatDialog').modal('show')">
+                <i class="material-icons mr-2">add</i><span>Create new</span>
+            </div>
+            <a class="one-chat" v-for="chat in chats" :key="chat.dialog_id" :class="{'active': chat.dialog_id == cid}" :href="`/chat/${chat.dialog_id}`">
+                <img src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png" alt="">
+                <span v-text="chat.name"></span>
+            </a>
+        </div>
+        <div class="chat">
+            <div class="messages" id="chat22">
+                <div v-for="msg in msgs" :class="{'i': msg.i}" :key="msg.id" class="message">
+                    <img v-if="!msg.i" src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png">
+                    <div class="message__in" v-text="msg.text"></div>
+                </div>
+            </div>
+            <div class="input">
+                <input @change="testFile" style="display: none;" type="file" name="image" id="image" accept="image/*">
+                <label for="image" :class="{'active': file}" class="mb-0 mr-1 bbtn"><i class="material-icons">image</i></label>
+                <input type="text" @keydown="test" class="mr-1" v-model="send_text">
+                <button @click="sendMsg" type="button" class="bbtn"><i class="material-icons">send</i></button>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="newChatDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create chat</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="chatName">Chat name</label>
+                    <div class="login-input">
+                        <input v-model="chatName" type="text" class="w-100" id="chatName" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Add users</label>
+                    <div class="login-input">
+                        <input @change="a" v-model="users" id="chatUsers" type="text" class="w-100" autocomplete="off">
+                    </div>
+                    <small @click="a">Use ',' (comma) or ', ' (comma + space) as separator</small>
+                    <small style="display: block;" v-if="error" class="text-danger">Unknown user "<span v-text="error">"</span></small>
+                    <input v-if="sa != ''" readonly class="input-hide w-100" v-model="sa">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="$('#newChatDialog').modal('hide')" class="b b-tr">Cancel</button>
+                <button @click="newChat" class="b b-pr">Create</button>
+            </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
-    const chat_id = {% cid %}
-    $("#back").click((e) => {
-        dimm('/chats');
-    })
-    
-    const dimm = (loc) => {
-        var size = 0;
-        var acc = 70;
-        var bd = setInterval(() => {
-            $("#big-dimmer").css("clip-path",`circle(${size}px at 3rem 2rem)`);
-            size += acc;
-            acc += 10;
-            if (size > window.innerHeight*2) {
-                clearInterval(bd);
-                window.location = loc
+const chat_id = {{ cid }};
+
+var app = new Vue({
+  el: '#chat',
+  data: () => ({
+    chats: null,
+    chatName: "",
+    send_text: "",
+    users: "",
+    sa: "",
+    chat: "",
+    file: "",
+    cid: chat_id,
+    error: '',
+    msgs: []
+  }),
+  methods: {
+      newChat: () => {
+        $.ajax({
+            method: "POST",
+            url: `/api/chats?uid=${localStorage.getItem('user')}`,
+            data: JSON.stringify({
+                name: app.chatName,
+                users_logins: app.users.split(/ +/).join("").split(",")
+            }),
+            headers: {'Content-Type': "application/json"},
+            success: (r) => {
+                app.$set(app.$data, 'error', "");
+                $('#newChatDialog').modal('hide');
+                this.getChats();
+            },
+            error: (r) => {
+                app.$set(app.$data, 'error', r.responseJSON.login);
+                app.getChats();
             }
-        }, 50)
-    }
-    const activate = (e) => {e.target.parentNode.classList.add("active")}
-    const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
-    const checkall = () => {
-        if (email && password) {
-            $("#send").removeClass("disabled");
-        } else {
-            $("#send").addClass("disabled");
+        })
+      },
+      testFile: (e) => {(e.target.value) ? app.$set(app.$data, 'file', true) : app.$set(app.$data, 'file', false);},
+      getChats: () => {
+        $.get("/api/chats", {
+            "uid": localStorage.getItem('user')
+        }).then((r) => {
+            app.$set(app.$data, 'chats', r.chats);
+        })
+      },
+      getChat: () => {
+        $.get("/api/messages", {
+            uid: localStorage.getItem('user'),
+            dialog_id: chat_id
+        }).then((r) => {
+            let msgs = [];
+            let old_msg = (app.msgs[app.msgs.length - 1]) ? app.msgs[app.msgs.length - 1].id : "a";
+            let my_uid = localStorage.getItem('user');
+            for (let i = r.msgs.length - 1; i >= 0; i--) {
+                msgs.push({text: r.msgs[i].text, i: r.msgs[i].uid == my_uid, id: r.msgs[i].id})
+            }
+            app.$set(app.$data, 'msgs', msgs);
+            let new_msg = (app.msgs[app.msgs.length - 1]) ? app.msgs[app.msgs.length - 1].id : "a";
+            if (old_msg != new_msg) {
+                setTimeout(()=>{document.getElementById("chat22").scrollTop = document.getElementById("chat22").scrollHeight*2000;},100);
+                console.log("bottom")
+            }
+        })
+      },
+      test: (e) => {(e.code == "Enter") ? app.sendMsg() : ''},
+      sendMsg: () => {
+        if (!app.send_text || !/[a-z,A-Z,А-Я,а-я,ё,Ё,0-9]/.test(app.send_text)) return;
+        let text = app.send_text;
+        app.$set(app.$data, 'send_text', '');
+        var fd = new FormData();
+        if (app.file) {
+            var image = $('#image')[0].files[0];
+            fd.append('file1', image);
         }
+        fd.append('text', text);
+        $.ajax({
+            url: `/api/messages?uid=${localStorage.getItem('user')}&dialog_id=${chat_id}`,
+            type: "post",
+            contentType: false,
+            processData: false,
+            data: fd,
+            success: (r) => {
+                app.getChat();
+            }
+        })
+      },
+      exit: () => {
+        localStorage.removeItem("user");
+        dimm('/');
+      },
+      a () {
+        this.sa = "Users: \"" + this.users.split(/ +/).join("").split(",").join("\", \"") + "\"";
+      }
+  }
+})
+
+app.getChats();
+const msgs = setInterval(() => {app.getChat();},2000);
+
+const activate = (e) => {e.target.parentNode.classList.add("active")}
+const deactivate = (e) => {e.target.parentNode.classList.remove("active")}
+
+$("#chatName").focus(activate);
+$("#chatName").blur(deactivate);
+$("#chatUsers").focus(activate);
+$("#chatUsers").blur(deactivate);
+
+const dimm = (loc) => {
+    var size = 0;
+    var acc = 70;
+    var bd = setInterval(() => {
+        $("#big-dimmer").css("clip-path",`circle(${size}px at 3rem 2rem)`);
+        size += acc;
+        acc += 10;
+        if (size > window.innerHeight*2) {
+            clearInterval(bd);
+            window.location = loc
+        }
+    }, 50)
+}
+const checkall = () => {
+    if (email && password) {
+        $("#send").removeClass("disabled");
+    } else {
+        $("#send").addClass("disabled");
     }
-    $("#big-dimmer").css("clip-path",`circle(0px at 3rem 2rem)`);
+}
+$("#big-dimmer").css("clip-path",`circle(0px at 3rem 2rem)`);
 </script>
 {% endblock %}
