@@ -16,6 +16,9 @@
   </head>
   <body>
     <div id="app">
+      <script>
+        if (localStorage.getItem("dark")) {$("#app").addClass("dark");}
+      </script>
         {% block content %}
         {% endblock %}
     </div>
@@ -34,7 +37,7 @@
                $("#sml").addClass("dark");
             }
         })
-        if (localStorage.getItem("dark")) {$("#app").addClass("dark");$("#sml").addClass("dark");}
+        if (localStorage.getItem("dark")) {$("#sml").addClass("dark");}
     </script>
   </body>
 </html>
