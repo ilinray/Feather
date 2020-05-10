@@ -9,7 +9,10 @@ from pathlib import Path
 
 
 OK = {'status': 'OK'}, 200
-
+pic_formats = ('gif', 'png', 'jpg', 'jpeg')
+def filetype(id):
+    f = MessageConnector.from_id(id).entry.filename.rsplit('.', maxsplit=1)[-1] in pic_formats
+    return 'image' if f else 'file'
 
 class PicturesResource(Resource):
     @check(user_exists, correct_uid)
@@ -51,6 +54,57 @@ class PicturesResource(Resource):
             return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
         except:
             return {'status': 'ER', 'reason': 'file timed out'}, 401
+
+
+class FilesResource(Resource):
+    @check(user_exists, correct_uid)
+    def get(self, uid):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('file_id', required=True)
+            orig_id = parser.parse_args()['file_id']
+            access, file_id = orig_id.split('_')
+            access, file_id = int(access), int(file_id)
+        except:
+            return {'status': 'ER', 'reason': 'bad request'}, 400
+        if access == -1:
+            return jsonify({
+                'status': 'OK',
+                'result': {
+                    'type': 'image',
+                    'src': f'/api/pictures?uid={uid}&file_id={orig_id}'
+                }
+            })
+        user_chats = UserConnector.from_id(uid).chats
+        if access == -2:
+            f = False
+            for chat in user_chats:
+                f = f or chat.id == file_id
+            if not f:
+                return {'status': 'ER', 'reason': 'no access'}, 401
+            return jsonify({
+                'status': 'OK',
+                'result': {
+                    'type': 'image',
+                    'src': f'/api/pictures?uid={uid}&file_id={orig_id}'
+                }
+            })
+        file = FileConnector.from_id(file_id)
+        if file.entry.file_access != access:
+            return {'status': 'ER', 'reason': 'file not found'}, 404
+        
+        f = False
+        for chat in user_chats:
+            f = f or chat.id == access
+        if not f:
+            return {'status': 'ER', 'reason': 'no access'}, 401
+            return jsonify({
+                'status': 'OK',
+                'result': {
+                    'type': filetype(file_id),
+                    'src': f'/api/pictures?uid={uid}&file_id={orig_id}'
+                }
+            })
 
 @check(user_exists, correct_uid)
 class ChatsResource(Resource):

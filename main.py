@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect, url_for
 from flask_restful import Api
 import json
 from sys import path
@@ -28,12 +28,23 @@ def registration():
 
 @app.route('/chats')
 def chats():
+    print('here')
+    print(list(session.keys()))
+    if 'logged_in' not in list(session.keys()):
+        return render_template('logout.html')
     return render_template("chats.html")
 
 @app.route('/chat/<int:cid>')
 def chat(cid):
+    if 'logged_in' not in session.keys():
+        return render_template('logout.html')
     return render_template("chat.html", cid=cid)
-    
+
+@app.route('/logout')
+def logout():
+    return render_template('logout.html')
+
+
 api.add_resource(auth.AuthResource, '/api/auth')
 api.add_resource(dial.ChatsResource, '/api/chats')
 api.add_resource(dial.UserInfoResource, '/api/users')
@@ -41,7 +52,8 @@ api.add_resource(dial.MessageResource, '/api/messages')
 api.add_resource(dial.DialogResource, '/api/dialogs')
 api.add_resource(dial.SelfResource, '/api/self')
 api.add_resource(dial.HostedDialogResource, '/api/hosted')
-api.add_resource(dial.PicturesResource, '/api/files')
+api.add_resource(dial.PicturesResource, '/api/pictures')
+api.add_resource(dial.FilesResource, '/api/files')
 
 if __name__ == '__main__':
-    app.run(port=8080, host='0.0.0.0')
+    app.run(port=8080, host='0.0.0.0', debug=True)

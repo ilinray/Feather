@@ -1,4 +1,4 @@
-from flask import request, session
+from flask import request, session, redirect, url_for
 from .db_funcs import DialogConnector, MessageConnector, UserConnector
 
 methods = set(('get', 'post', 'patch', 'delete'))

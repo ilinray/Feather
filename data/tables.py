@@ -22,7 +22,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     login = Column(String, index=True, unique=True, nullable=True)
     email = Column(String, unique=True, nullable=True)
-    hashed_password = Column(LargeBinary, nullable=True)
+    hashed_password = Column(LargeBinary)
     has_pic = Column(Boolean, default=False)
     created_date = Column(Date, default=datetime.datetime.now)
     dialogs = orm.relation('Connector', back_populates='user')

@@ -26,6 +26,7 @@ class AuthResource(Resource):
         parser.add_argument('email', required=True)
         parser.add_argument('password', required=True)
         args = parser.parse_args()
+        print(args['password'])
         try: 
             uid = UserConnector.new(login=args['login'], email=args['email'], password=args['password']).id
             session['logged_in'] = uid

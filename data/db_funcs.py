@@ -69,6 +69,7 @@ class MessageConnector(BaseConnector):
     def new(cls, files=[], **kwargs):
         msg = super().new(table_attrs=cls.table_attrs, **kwargs)
         for f in files:
+            print(f)
             FileConnector.register_file(kwargs['dialog_id'], f, msg.id)
         return msg
 
