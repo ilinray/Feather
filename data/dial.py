@@ -1,7 +1,7 @@
 from flask_restful import reqparse, Resource, request
 from flask import jsonify, session, send_file
 import sys
-from .db_funcs import UserConnector, DialogConnector, MessageConnector, FileConnector
+from .db_funcs import UserConnector, DialogConnector, MessageConnector, FileConnector, filetype
 from datetime import datetime
 from .validators import *
 from PIL import Image
@@ -9,10 +9,6 @@ from pathlib import Path
 
 
 OK = {'status': 'OK'}, 200
-pic_formats = ('gif', 'png', 'jpg', 'jpeg')
-def filetype(id):
-    f = MessageConnector.from_id(id).entry.filename.rsplit('.', maxsplit=1)[-1] in pic_formats
-    return 'image' if f else 'file'
 
 class PicturesResource(Resource):
     @check(user_exists, correct_uid)
@@ -98,13 +94,13 @@ class FilesResource(Resource):
             f = f or chat.id == access
         if not f:
             return {'status': 'ER', 'reason': 'no access'}, 401
-            return jsonify({
-                'status': 'OK',
-                'result': {
-                    'type': filetype(file_id),
-                    'src': f'/api/pictures?uid={uid}&file_id={orig_id}'
-                }
-            })
+        return jsonify({
+            'status': 'OK',
+            'result': {
+                'type': filetype(file_id),
+                'src': f'/api/pictures?uid={uid}&file_id={orig_id}'
+            }
+        })
 
 @check(user_exists, correct_uid)
 class ChatsResource(Resource):
@@ -199,7 +195,7 @@ class SelfResource(Resource):
             if img.size[0] != img.size[1]:
                 return {'status': 'ER', 'reason': 'image is not square'}, 403
             img.thumbnail((100, 100))
-            img.save(f'user_imgs/-1_{uid}.png')
+            img.save(f'static/user_imgs/-1_{uid}.png')  
         return OK
 
     def delete(self, uid):
@@ -265,7 +261,7 @@ class HostedDialogResource(Resource):
     def patch(self, dial, **_):
         new_name = request.form.get('name')
         if new_name is None:
-            return {'status': 'ER', 'reason': 'form arg "name" missing'}
+            return {'status': 'ER', 'reason': 'form arg "name" missing'}, 400
         dial.entry.name = new_name
         return OK
     
@@ -282,7 +278,7 @@ class HostedDialogResource(Resource):
             if img.size[0] != img.size[1]:
                 return {'status': 'ER', 'reason': 'image is not square'}, 403
             img.thumbnail((100, 100))
-            img.save(f'user_imgs/-2_{dialog_id}.png')
+            img.save(f'static/user_imgs/-2_{dialog_id}.png')
         return OK
 
     def delete(self, dial, **_):

@@ -16,6 +16,11 @@ from connections import Base, create_session, global_init
 global_init('db/featherDB.sqlite')
 session = create_session()
 
+pic_formats = ('gif', 'png', 'jpg', 'jpeg')
+def filetype(id):
+    f = FileConnector.from_id(id).entry.filename.rsplit('.', maxsplit=1)[-1] in pic_formats
+    return 'image' if f else 'file'
+
 
 def hashed_password(password):
     return pbkdf2_hmac('sha512', bytes(password, 'u8'), bytes('bytes', 'u8'), 10)
@@ -69,15 +74,16 @@ class MessageConnector(BaseConnector):
     def new(cls, files=[], **kwargs):
         msg = super().new(table_attrs=cls.table_attrs, **kwargs)
         for f in files:
-            print(f)
             FileConnector.register_file(kwargs['dialog_id'], f, msg.id)
         return msg
 
     def to_dict(self):
         files = []
         for file in self.entry.files:
+            f = file.filename.rsplit('.', maxsplit=1)[-1] in pic_formats
             d = {'filename': file.filename,
-                 'file_id': f'{file.file_access}_{file.id}'}
+                 'file_id': f'{file.file_access}_{file.id}',
+                 'type': 'image' if f else 'file'}
             files.append(d)
         retval = {'id': self.id,
                   'text': self.entry.text,
