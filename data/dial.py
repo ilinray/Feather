@@ -25,7 +25,7 @@ class PicturesResource(Resource):
             try:
                 return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
             except:
-                return send_file(f'user_imgs/avatar.jpeg')
+                return send_file(f'static/avatar.png')
         user_chats = UserConnector.from_id(uid).chats
         if access == -2:
             f = False
@@ -37,7 +37,7 @@ class PicturesResource(Resource):
             try:
                 return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
             except:
-                return send_file(f'user_imgs/dialog.jpeg')
+                return send_file(f'static/m_icon.png')
         file = FileConnector.from_id(file_id)
         if file.entry.file_access != access:
             return {'status': 'ER', 'reason': 'file not found'}, 404
