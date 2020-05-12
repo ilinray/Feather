@@ -215,7 +215,8 @@ class MessageResource(Resource):
         args = parser.parse_args()
         msgs = dial.get_messages(args['count'], args['offset'])
         return {'status': 'OK',
-                'msgs': [m.to_dict() for m in msgs]}
+                'msgs': [m.to_dict() for m in msgs],
+                'dialog_name': dial.entry.name}
 
     @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
     def post(self, uid, dial, dialog_id):
