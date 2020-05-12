@@ -89,7 +89,8 @@ class MessageConnector(BaseConnector):
                   'text': self.entry.text,
                   'uid': self.entry.user_id,
                   'datetime': self.entry.created_date.isoformat(timespec='seconds'),
-                  'files': files}
+                  'files': files,
+                  'login': UserConnector.from_id(self.entry.user_id).entry.login}
         return retval
 
     def delete(self):
