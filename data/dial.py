@@ -1,7 +1,14 @@
+# File contains API resources for JS
+
+
 from flask_restful import reqparse, Resource, request
 from flask import jsonify, session, send_file
 import sys
-from .db_funcs import UserConnector, DialogConnector, MessageConnector, FileConnector, filetype
+from .db_funcs import (UserConnector,
+                       DialogConnector,
+                       MessageConnector,
+                       FileConnector,
+                       filetype)
 from datetime import datetime
 from .validators import *
 from PIL import Image
@@ -9,10 +16,14 @@ from pathlib import Path
 
 
 OK = {'status': 'OK'}, 200
+# OK for returning
+
 
 class PicturesResource(Resource):
+    # This resource returns files (not URLs)
     @check(user_exists, correct_uid)
     def get(self, uid):
+        # the only method
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('file_id', required=True)
@@ -23,7 +34,8 @@ class PicturesResource(Resource):
             return {'status': 'ER', 'reason': 'bad request'}, 400
         if access == -1:
             try:
-                return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
+                return send_file(f'user_imgs/{orig_id}.png',
+                                 attachment_filename='avatar.png')
             except:
                 return send_file(f'static/avatar.png')
         user_chats = UserConnector.from_id(uid).chats
@@ -35,7 +47,8 @@ class PicturesResource(Resource):
             if not f:
                 return {'status': 'ER', 'reason': 'no access'}, 401
             try:
-                return send_file(f'user_imgs/{orig_id}.png', attachment_filename='avatar.png')
+                return send_file(f'user_imgs/{orig_id}.png',
+                                 attachment_filename='avatar.png')
             except:
                 return send_file(f'static/m_icon.png')
         file = FileConnector.from_id(file_id)
@@ -47,14 +60,17 @@ class PicturesResource(Resource):
                 f = f or chat.id == access
             if not f:
                 return {'status': 'ER', 'reason': 'no access'}, 401
-            return send_file(f'user_imgs/{orig_id}', attachment_filename=file.entry.filename)
+            return send_file(f'user_imgs/{orig_id}',
+                             attachment_filename=file.entry.filename)
         except:
             return {'status': 'ER', 'reason': 'file timed out'}, 401
 
 
 class FilesResource(Resource):
+    # This resource returns URLs for files
     @check(user_exists, correct_uid)
     def get(self, uid):
+        # You can use URL to get a file
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('file_id', required=True)
@@ -88,7 +104,7 @@ class FilesResource(Resource):
         file = FileConnector.from_id(file_id)
         if file.entry.file_access != access:
             return {'status': 'ER', 'reason': 'file not found'}, 404
-        
+
         f = False
         for chat in user_chats:
             f = f or chat.id == access
@@ -102,27 +118,33 @@ class FilesResource(Resource):
             }
         })
 
+
 @check(user_exists, correct_uid)
 class ChatsResource(Resource):
+    # API resource for getting and creating chats
     def get(self, uid):
+        # get list of your chats
         info = []
         user = UserConnector.from_id(uid)
         for dial in user.chats:
             dial_info = {'dialog_id': dial.id}
             mp = len(list(dial.users_id)) != 2
             if mp:
-                print('here')
-                dial_info['picture'] = f'-2_{dial.id}' if dial.entry.has_pic else None
+                pic = dial.entry.has_pic
+                dial_info['picture'] = f'-2_{dial.id}' if pic else None
                 dial_info['name'] = dial.entry.name
             else:
                 a, b, *_ = dial.entry.users
                 enemy = b if a.user_id == uid else a
-                dial_info['picture'] = f'-1_{enemy.user_id}' if enemy.user.has_pic else None
+                pic = enemy.user.has_pic
+                id_ = enemy.user_id
+                dial_info['picture'] = f'-1_{id_}' if pic else None
                 dial_info['name'] = enemy.user.login
             info.append(dial_info)
         return {'status': 'OK', 'chats': info}, 200
 
     def post(self, uid):
+        # Create a new chat
         json = request.get_json()
         users = set(json.get('users_id', []))
         logins = json.get('users_logins', [])
@@ -130,20 +152,28 @@ class ChatsResource(Resource):
         for login in logins:
             user = UserConnector.from_login(login)
             if user is None:
-                return ({'status': 'ER', 'reason': f'user {login} not found', 'login': login}, 404)
+                return ({'status': 'ER',
+                         'reason': f'user {login} not found',
+                         'login': login}, 404)
             users.add(user.id)
         if uid not in users:
             users.add(uid)
         for uid_ in users:
             guest = UserConnector.from_id(uid_)
             if guest is None:
-                return ({'status': 'ER', 'reason': f'user {uid} not found', 'uid': uid}, 404)
+                return ({'status': 'ER',
+                         'reason': f'user {uid} not found',
+                         'uid': uid}, 404)
         return {'status': 'OK',
-                'id': DialogConnector.new(host_id=uid, name=json['name'], users_id=users).id}
+                'id': DialogConnector.new(host_id=uid,
+                                          name=json['name'],
+                                          users_id=users).id}
 
 
 class UserInfoResource(Resource):
+    # This recource return info about users
     def get(self):
+        # This can be used to find out if user exists
         parser = reqparse.RequestParser()
         parser.add_argument('uid', type=int, default=0)
         parser.add_argument('login', default='')
@@ -173,7 +203,9 @@ class UserInfoResource(Resource):
 
 @check(user_exists, correct_uid)
 class SelfResource(Resource):
+    # This resource provides some extra funcions for your profile
     def get(self, uid):
+        # Returns All information about you
         user = UserConnector.from_id(uid)
         user_info = {'id': user.id,
                      'login': user.entry.login,
@@ -183,6 +215,7 @@ class SelfResource(Resource):
         return {'status': 'OK', "info": user_info}, 200
 
     def post(self, uid):
+        # Sets a new profile pic
         files = list(request.files.values())
         if not files:
             return {'status': 'ER', 'reason': 'no file provided'}, 400
@@ -195,16 +228,21 @@ class SelfResource(Resource):
             if img.size[0] != img.size[1]:
                 return {'status': 'ER', 'reason': 'image is not square'}, 403
             img.thumbnail((100, 100))
-            img.save(f'static/user_imgs/-1_{uid}.png')  
+            img.save(f'static/user_imgs/-1_{uid}.png')
+            UserConnector.from_id(uid).entry.has_pic = True
         return OK
 
     def delete(self, uid):
+        # You can kill yourself
         UserConnector.delete_by_id(uid)
         return OK
 
+
 class MessageResource(Resource):
+    # This resource works with messages
     @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
     def get(self, uid, dial, dialog_id):
+        # Returns messages of a chat
         parser = reqparse.RequestParser()
         parser.add_argument('offset', type=int, default=0)
         parser.add_argument('count', type=int, default=20)
@@ -216,26 +254,36 @@ class MessageResource(Resource):
 
     @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
     def post(self, uid, dial, dialog_id):
+        # Creates a message in a chat
         text = request.form['text']
         time = datetime.now()
         files = request.files.values()
-        id = MessageConnector.new(user_id=uid, text=text, files=files, created_date=time, dialog_id=dialog_id).id
+        id = MessageConnector.new(
+            user_id=uid,
+            text=text,
+            files=files,
+            created_date=time,
+            dialog_id=dialog_id).id
         return {'status': 'OK', 'id': id}
 
     @check(user_exists, correct_uid, message_exists, message_belongs_to_user)
     def delete(self, uid, message_id, msg):
+        # Deletes your message
         msg.delete()
         return {'status': 'OK'}
 
     @check(user_exists, correct_uid, message_exists, message_belongs_to_user)
     def patch(self, uid, message_id, msg):
+        # Edits your message
         msg.entry.text = request.form['text']
         return OK
 
 
 @check(user_exists, correct_uid, dialog_exists, dialog_belongs_to_user)
 class DialogResource(Resource):
+    # This resource represents dialogs
     def get(self, uid, dialog_id, dial):
+        # Returns information about dialogs
         info = {'id': dial.id,
                 'pic': f'-2_{dial.id}' if dial.entry.has_pic else None,
                 'name': dial.entry.name,
@@ -244,28 +292,34 @@ class DialogResource(Resource):
         return {'status': 'OK', 'info': info}, 200
 
     def post(self, uid, dialog_id, dial):
+        # Adds users to a dialog
         users = request.json['users_id']
         for guest_uid in users:
             if not UserConnector.exists_from_id(guest_uid):
-                return {'status': 'ER', 'reason': f'user {guest_uid} not found'}, 404
+                return {'status': 'ER',
+                        'reason': f'user {guest_uid} not found'}, 404
         dial.add_users(users)
         return OK
 
     def delete(self, uid, dialog_id, dial):
+        # Kicks you from a dialog
         dial.delete_users([uid])
         return OK
 
 
 @check(user_exists, correct_uid, dialog_exists, dialog_hosted_by_user)
 class HostedDialogResource(Resource):
+    # Extra functions for a user, who hosts a dialog
     def patch(self, dial, **_):
+        # Changes chat's name
         new_name = request.form.get('name')
         if new_name is None:
             return {'status': 'ER', 'reason': 'form arg "name" missing'}, 400
         dial.entry.name = new_name
         return OK
-    
+
     def post(self, dialog_id, **_):
+        # Changes dialog's pic
         files = list(request.files.values())
         if not files:
             return {'status': 'ER', 'reason': 'no file provided'}, 400
@@ -282,8 +336,11 @@ class HostedDialogResource(Resource):
         return OK
 
     def delete(self, dial, **_):
+        # Kicks users from chat
         try:
             dial.delete_users(request.json['users_id'])
             return OK
         except:
-            return {'status': 'ER', 'reason': 'kick list must be a json like {"users_id": [ids_to_kick]}'}, 400
+            er = 'kick list must be a json like {"users_id": [ids_to_kick]}'
+            return {'status': 'ER',
+                    'reason': er}, 400
