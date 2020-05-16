@@ -18,7 +18,7 @@
             <a id="exit" href="/chats" class="back"><i class="material-icons">chevron_left</i></a>
             <h4>Chats</h4>
         </div>
-        <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
+        <div class="right" v-if="imhost"><button type="button" @click="chatSettings"><i class="material-icons">more_vert</i></button></div>
     </header>
     <div class="wrpr"></div>
     <div class="main-chat">
@@ -27,23 +27,33 @@
                 <i class="material-icons mr-2">add</i><span>Create new</span>
             </div>
             <a class="one-chat" v-for="chat in chats" :key="chat.dialog_id" :class="{'active': chat.dialog_id == cid}" :href="`/chat/${chat.dialog_id}`">
-                <img src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png" alt="">
+                <img :src="`/api/pictures?uid=${uid}&file_id=-2_${chat.dialog_id}`">
                 <span v-text="chat.name"></span>
             </a>
         </div>
         <div class="chat">
             <div class="messages" id="chat22">
                 <div v-for="msg in msgs" :class="{'i': msg.i}" :key="msg.id" class="message">
-                    <img v-if="!msg.i" src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png">
-                    <div class="message__in" v-text="msg.text"></div>
+                    <img v-if="!msg.i" :src="`/api/pictures?uid=${uid}&file_id=-1_${msg.uid}`">
+                    <div class="message__in">
+                        <div class="top"><b v-text="msg.login"></b> <span class="text-gray" v-text="msg.time"></span></div>
+                        <span @click="deleteMsgModal(msg.id, msg.i)" v-text="msg.text"></span>
+                        <img v-if="msg.image" @click="showImage(msg.image)" :src="msg.image" >
+                        <a v-if="msg.file" :href="msg.file" download class="download"><i class="material-icons mr-2">get_app</i> Файл</a>
+                    </div>
                 </div>
             </div>
             <div class="input">
-                <input @change="testFile" style="display: none;" type="file" name="image" id="image" accept="image/*">
+                <input @change="testFile" style="display: none;" type="file" name="image" id="image">
                 <label for="image" :class="{'active': file}" class="mb-0 mr-1 bbtn"><i class="material-icons">image</i></label>
                 <input type="text" @keydown="test" class="mr-1" v-model="send_text">
                 <button @click="sendMsg" type="button" class="bbtn"><i class="material-icons">send</i></button>
             </div>
+        </div>
+    </div>
+    <div class="modal fade" id="bigImage" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+                <img :src="theImg">
         </div>
     </div>
     <div class="modal fade" id="newChatDialog" tabindex="-1" role="dialog">
@@ -79,6 +89,56 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="changeChat" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modify chat</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="chatChangeName">Chat name</label>
+                    <div class="login-input">
+                        <input v-model="chatChangeName" type="text" class="w-100" id="chatChangeName" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="chatIcon">Chat icon</label>
+                    <div class="login-input">
+                        <input type="file" @change="testFile2" class="w-100" accept="image/*" id="chatIcon" autocomplete="off">
+                    </div>
+                    <small class="text-danger" v-text="picError"></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="$('#changeChat').modal('hide')" class="b b-tr">Cancel</button>
+                <button @click="saveChatChanges" class="b b-pr">Save</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deleteMsg" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure delete this message?
+            </div>
+            <div class="modal-footer">
+                <button onclick="$('#deleteMsg').modal('hide')" class="b b-tr">Cancel</button>
+                <button @click="deleteMsg" class="b b-pr">Delete</button>
+            </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
 const chat_id = {{ cid }};
@@ -88,6 +148,7 @@ var app = new Vue({
   data: () => ({
     chats: null,
     chatName: "",
+    theImg: "",
     send_text: "",
     users: "",
     sa: "",
@@ -95,7 +156,13 @@ var app = new Vue({
     file: "",
     cid: chat_id,
     error: '',
-    msgs: []
+    msgs: [],
+    chatChangeName: null,
+    uid: localStorage.getItem("user"),
+    selectedMsg: 0,
+    chatIcon: false,
+    imhost: false,
+    picError: ""
   }),
   methods: {
       newChat: () => {
@@ -110,23 +177,26 @@ var app = new Vue({
             success: (r) => {
                 app.$set(app.$data, 'error', "");
                 $('#newChatDialog').modal('hide');
-                this.getChats();
+                setTimeout(()=>{app.getChats();},500);
             },
             error: (r) => {
                 app.$set(app.$data, 'error', r.responseJSON.login);
-                app.getChats();
+                setTimeout(()=>{app.getChats();},500);
             }
         })
       },
+      deleteMsgModal: (id, i) => {if (!i) return; $("#deleteMsg").modal("show"); app.$set(app.$data, "selectedMsg", id)},
       testFile: (e) => {(e.target.value) ? app.$set(app.$data, 'file', true) : app.$set(app.$data, 'file', false);},
+      testFile2: (e) => {(e.target.value) ? app.$set(app.$data, 'chatIcon', true) : app.$set(app.$data, 'chatIcon', false);},
       getChats: () => {
         $.get("/api/chats", {
             "uid": localStorage.getItem('user')
         }).then((r) => {
+            console.log("new!", r.chats);
             app.$set(app.$data, 'chats', r.chats);
         })
       },
-      getChat: () => {
+      getChat: (a) => {
         $.get("/api/messages", {
             uid: localStorage.getItem('user'),
             dialog_id: chat_id
@@ -135,25 +205,32 @@ var app = new Vue({
             let old_msg = (app.msgs[app.msgs.length - 1]) ? app.msgs[app.msgs.length - 1].id : "a";
             let my_uid = localStorage.getItem('user');
             for (let i = r.msgs.length - 1; i >= 0; i--) {
-                msgs.push({text: r.msgs[i].text, i: r.msgs[i].uid == my_uid, id: r.msgs[i].id})
+                let data = {};
+                data.text = r.msgs[i].text;
+                data.i = r.msgs[i].uid == my_uid;
+                data.uid = r.msgs[i].uid;
+                data.id = r.msgs[i].id;
+                data.login = r.msgs[i].login;
+                data.time = r.msgs[i].datetime.split("T")[1].split(":").slice(0,2).join(":");
+                if (r.msgs[i].files.length) data[r.msgs[i].files[0].type] = `/api/pictures?uid=${localStorage.getItem('user')}&file_id=${r.msgs[i].files[0].file_id}`;
+                msgs.push(data);
             }
             app.$set(app.$data, 'msgs', msgs);
             let new_msg = (app.msgs[app.msgs.length - 1]) ? app.msgs[app.msgs.length - 1].id : "a";
-            if (old_msg != new_msg) {
-                setTimeout(()=>{document.getElementById("chat22").scrollTop = document.getElementById("chat22").scrollHeight*2000;},100);
-                console.log("bottom")
-            }
+            if (old_msg != new_msg) setTimeout(()=>{document.getElementById("chat22").scrollTop = document.getElementById("chat22").scrollHeight*2000;},100);
         })
       },
+      showImage: (img) => {app.$set(app.$data, "theImg", img);$("#bigImage").modal("show");},
       test: (e) => {(e.code == "Enter") ? app.sendMsg() : ''},
       sendMsg: () => {
-        if (!app.send_text || !/[a-z,A-Z,А-Я,а-я,ё,Ё,0-9]/.test(app.send_text)) return;
+        if (!app.send_text || !/[a-z,A-Z,А-Я,а-я,ё,Ё,0-9,.]/.test(app.send_text)) return;
         let text = app.send_text;
         app.$set(app.$data, 'send_text', '');
         var fd = new FormData();
         if (app.file) {
             var image = $('#image')[0].files[0];
             fd.append('file1', image);
+            app.$set(app.$data, "file", false);
         }
         fd.append('text', text);
         $.ajax({
@@ -167,17 +244,64 @@ var app = new Vue({
             }
         })
       },
+      deleteMsg: () => {
+        $('#deleteMsg').modal('hide');
+        $.ajax({
+            url: `/api/messages?uid=${localStorage.getItem('user')}&dialog_id=${chat_id}&message_id=${app.selectedMsg}`,
+            type: "delete",
+            success: (r) => {app.getChat();}
+        })
+      },
       exit: () => {
         localStorage.removeItem("user");
         dimm('/');
       },
       a () {
         this.sa = "Users: \"" + this.users.split(/ +/).join("").split(",").join("\", \"") + "\"";
-      }
-  }
+      },
+      saveChatChanges () {
+        if (app.chatIcon) {
+            let fd0 = new FormData();
+            var image = $('#chatIcon')[0].files[0];
+            fd0.append('file1', image);
+            $.ajax({
+                url: `/api/hosted?uid=${localStorage.getItem('user')}&dialog_id=${chat_id}`,
+                contentType: false,
+                processData: false,
+                data: fd0,
+                method: "post",
+                success: () => {setTimeout(()=>{app.getChats()},1000); $("#changeChat").modal("hide");},
+                error: () => {app.$set(app.$data, 'picError', "Error! Maybe your picture is not square?")}
+            })
+            app.$set(app.$data, 'chatIcon', false);
+        }
+        if (app.chatChangeName) {
+            let fd1 = new FormData();
+            fd1.append('name', app.chatChangeName);
+            $.ajax({
+                url: `/api/hosted?uid=${localStorage.getItem('user')}&dialog_id=${chat_id}`,
+                data: fd1,
+                method: "patch",
+                contentType: false,
+                processData: false,
+                success: () => {setTimeout(()=>{app.getChats()},1000); $("#changeChat").modal("hide");}
+            })
+            app.$set(app.$data, 'chatChangeName', null);
+        }
+      },
+      chatSettings () {$("#changeChat").modal("show")}
+    },
+    mounted: () => {
+        $.ajax({
+            url: `/api/dialogs?uid=${localStorage.getItem('user')}&dialog_id=${chat_id}`,
+            method: "GET",
+            success: (r) => {if(r.info.host_id != localStorage.getItem("user")) return;app.$set(app.$data, "imhost", true);}
+        })
+    }
 })
 
-app.getChats();
+app.getChats(true);
+app.getChat();
 const msgs = setInterval(() => {app.getChat();},2000);
 
 const activate = (e) => {e.target.parentNode.classList.add("active")}
@@ -187,6 +311,10 @@ $("#chatName").focus(activate);
 $("#chatName").blur(deactivate);
 $("#chatUsers").focus(activate);
 $("#chatUsers").blur(deactivate);
+$("#chatChangeName").focus(activate);
+$("#chatChangeName").blur(deactivate);
+$("#chatIcon").focus(activate);
+$("#chatIcon").blur(deactivate);
 
 const dimm = (loc) => {
     var size = 0;

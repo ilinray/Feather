@@ -18,7 +18,7 @@
             <button id="exit" type="button" @click="exit" class="back"><i class="material-icons">exit_to_app</i></button>
             <h4>Chats</h4>
         </div>
-        <div class="right"><button type="button"><i class="material-icons">more_vert</i></button></div>
+        <div class="right"><button onclick="$('#changeAvatar').modal('show')" type="button"><i class="material-icons">account_circle</i></button></div>
     </header>
     <div class="wrpr"></div>
     <div class="main-chat">
@@ -27,7 +27,7 @@
                 <i class="material-icons mr-2">add</i><span>Create new</span>
             </div>
             <a class="one-chat" v-for="chat in chats" :href="`/chat/${chat.dialog_id}`">
-                <img src="https://www.transparentpng.com/thumb/flight-attendant/flight-attendant-user-icons-png-6.png" alt="">
+                <img :src="`/api/pictures?uid=${uid}&file_id=-2_${chat.dialog_id}`">
                 <span v-text="chat.name"></span>
             </a>
         </div>
@@ -69,6 +69,31 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="changeAvatar" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change avatar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="userPic">New avatar</label>
+                    <div class="login-input">
+                        <input type="file" @change="testFile" class="w-100" accept="image/*" id="userPic" autocomplete="off">
+                    </div>
+                    <small class="text-danger" v-text="picError"></small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="$('#changeAvatar').modal('hide')" class="b b-tr">Cancel</button>
+                <button @click="newAvatar" class="b b-pr">Change</button>
+            </div>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
 var app = new Vue({
@@ -78,7 +103,10 @@ var app = new Vue({
     chatName: "",
     users: "",
     sa: "",
-    error: ''
+    error: '',
+    uid: localStorage.getItem("user"),
+    file: false,
+    picError: ""
   }),
   methods: {
       newChat: () => {
@@ -93,14 +121,15 @@ var app = new Vue({
             success: (r) => {
                 app.$set(app.$data, 'error', "");
                 $('#newChatDialog').modal('hide');
-                app.getChats();
+                setTimeout(()=>{app.getChats();},500);
             },
             error: (r) => {
                 app.$set(app.$data, 'error', r.responseJSON.login);
-                app.getChats();
+                setTimeout(()=>{app.getChats();},500);
             }
         })
       },
+      testFile: (e) => {(e.target.value) ? app.$set(app.$data, 'file', true) : app.$set(app.$data, 'file', false);},
       getChats: () => {
         $.get("/api/chats", {
             "uid": localStorage.getItem('user')
@@ -112,8 +141,24 @@ var app = new Vue({
         localStorage.removeItem("user");
         dimm('/');
       },
-      a () {
+      a: () => {
         this.sa = "Users: \"" + this.users.split(/ +/).join("").split(",").join("\", \"") + "\"";
+      },
+      newAvatar: () => {
+        if (!app.file) return;
+        let fd = new FormData();
+        var image = $('#userPic')[0].files[0];
+        fd.append('pic', image);
+        $.ajax({
+            url: `/api/self?uid=${localStorage.getItem('user')}`,
+            contentType: false,
+            processData: false,
+            data: fd,
+            method: "post",
+            success: () => {setTimeout(()=>{app.getChats()},1000);$('#changeAvatar').modal('hide');},
+            error: () => {app.$set(app.$data, 'picError', "Error! Maybe your picture is not square?")}
+        })
+        app.$set(app.$data, 'file', false);
       }
   }
 })
