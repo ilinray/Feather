@@ -1,0 +1,7 @@
+CREATE TRIGGER dialog_host_remake AFTER UPDATE ON dialogs
+WHEN (NEW.host_id IS NULL) AND (EXISTS (SELECT user_id FROM connector WHERE dial_id = NEW.id))
+BEGIN
+UPDATE dialogs
+SET host_id = (SELECT user_id FROM connector WHERE dial_id = NEW.id LIMIT 1)
+WHERE id = NEW.id;
+END;

@@ -144,6 +144,7 @@ class UserConnector(BaseConnector):
         # Also hashes password
         user = super().new(table_attrs=cls.table_attrs, **kwargs)
         user.entry.hashed_password = hashed_password(kwargs['password'])
+        session.commit()
         return user
 
     def check_password(self, password):

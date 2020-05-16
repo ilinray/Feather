@@ -43,7 +43,6 @@ class PicturesResource(Resource):
             f = False
             for chat in user_chats:
                 f = f or chat.id == file_id
-                print(chat.id)
             if not f:
                 return {'status': 'ER', 'reason': 'no access'}, 401
             try:
@@ -230,6 +229,7 @@ class SelfResource(Resource):
             img.thumbnail((100, 100))
             img.save(f'user_imgs/-1_{uid}.png')
             UserConnector.from_id(uid).entry.has_pic = True
+            session.commit()
         return OK
 
     def delete(self, uid):
@@ -318,7 +318,7 @@ class HostedDialogResource(Resource):
         dial.entry.name = new_name
         return OK
 
-    def post(self, dialog_id, **_):
+    def post(self, dialog_id, dial, **_):
         # Changes dialog's pic
         files = list(request.files.values())
         if not files:
@@ -333,6 +333,8 @@ class HostedDialogResource(Resource):
                 return {'status': 'ER', 'reason': 'image is not square'}, 403
             img.thumbnail((100, 100))
             img.save(f'user_imgs/-2_{dialog_id}.png')
+            dial.entry.has_pic = True
+            session.commit()
         return OK
 
     def delete(self, dial, **_):

@@ -6,6 +6,7 @@ from flask_restful import Api
 import json
 from sys import path
 from data import auth, dial
+from waitress import serve
 
 
 app = Flask(__name__, template_folder='frontend', static_url_path="/")
@@ -34,8 +35,6 @@ def registration():
 # Page with all of your chats
 @app.route('/chats')
 def chats():
-    print('here')
-    print(list(session.keys()))
     if 'logged_in' not in list(session.keys()):
         return render_template('logout.html')
     return render_template("chats.html")
@@ -67,4 +66,5 @@ api.add_resource(dial.PicturesResource, '/api/pictures')
 api.add_resource(dial.FilesResource, '/api/files')
 
 if __name__ == '__main__':
-    app.run(port=8080, host='0.0.0.0', debug=True)
+    # app.run(port=8080, host='0.0.0.0', debug=True)
+    serve(app, host='0.0.0.0', port=8080)
