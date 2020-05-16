@@ -2,13 +2,14 @@
 
 
 from flask_restful import reqparse, Resource, request
-from flask import jsonify, session, send_file
+from flask import jsonify, send_file
 import sys
 from .db_funcs import (UserConnector,
                        DialogConnector,
                        MessageConnector,
                        FileConnector,
-                       filetype)
+                       filetype,
+                       commit)
 from datetime import datetime
 from .validators import *
 from PIL import Image
@@ -229,7 +230,7 @@ class SelfResource(Resource):
             img.thumbnail((100, 100))
             img.save(f'user_imgs/-1_{uid}.png')
             UserConnector.from_id(uid).entry.has_pic = True
-            session.commit()
+            commit()
         return OK
 
     def delete(self, uid):
@@ -334,7 +335,7 @@ class HostedDialogResource(Resource):
             img.thumbnail((100, 100))
             img.save(f'user_imgs/-2_{dialog_id}.png')
             dial.entry.has_pic = True
-            session.commit()
+            commit()
         return OK
 
     def delete(self, dial, **_):

@@ -21,6 +21,10 @@ session = create_session()
 pic_formats = ('gif', 'png', 'jpg', 'jpeg')
 
 
+def commit():
+    session.commit()
+
+
 def filetype(id):
     # returns type of file from id (img/file)
     f = FileConnector.from_id(id).entry.filename.rsplit(
